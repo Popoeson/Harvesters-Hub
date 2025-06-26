@@ -30,17 +30,17 @@ mongoose.connect(process.env.MONGO_URI, {
 const userSchema = new mongoose.Schema({
   name: String,
   email: { type: String, unique: true },
-  password: String,
+  password: String, // Plaintext (⚠️ not secure for production)
   role: { type: String, enum: ['super-admin', 'campus-admin'], default: 'campus-admin' },
   campus: { type: mongoose.Schema.Types.ObjectId, ref: 'Campus', default: null }
-});
+}, { timestamps: true });
 const User = mongoose.model('User', userSchema);
 
 // Campus Schema
 const campusSchema = new mongoose.Schema({
   name: { type: String, required: true },
   location: String
-});
+}, { timestamps: true });
 const Campus = mongoose.model('Campus', campusSchema);
 
 // Teaching Schema
@@ -53,7 +53,7 @@ const teachingSchema = new mongoose.Schema({
   views: { type: Number, default: 0 },
   likes: { type: Number, default: 0 },
   comments: [{ name: String, comment: String, date: { type: Date, default: Date.now } }]
-});
+}, { timestamps: true });
 const Teaching = mongoose.model('Teaching', teachingSchema);
 
 // Testimony Schema
@@ -61,7 +61,7 @@ const testimonySchema = new mongoose.Schema({
   name: String,
   message: String,
   approved: { type: Boolean, default: false }
-});
+}, { timestamps: true });
 const Testimony = mongoose.model('Testimony', testimonySchema);
 
 // Prayer Request Schema
@@ -69,7 +69,7 @@ const prayerSchema = new mongoose.Schema({
   name: String,
   request: String,
   date: { type: Date, default: Date.now }
-});
+}, { timestamps: true });
 const PrayerRequest = mongoose.model('PrayerRequest', prayerSchema);
 
 // ----------------------
@@ -94,7 +94,7 @@ const authMiddleware = async (req, res, next) => {
 // 4. Routes
 // ----------------------
 
-// Auth: Register
+// Auth: Register (only super-admin should call this in production)
 app.post('/api/auth/register', async (req, res) => {
   const { name, email, password, role, campusId } = req.body;
 
@@ -105,7 +105,7 @@ app.post('/api/auth/register', async (req, res) => {
     const newUser = new User({
       name,
       email,
-      password, // Store as-is (bcrypt recommended for production!)
+      password, // stored as plain text (⚠️ not secure)
       role,
       campus: role === 'campus-admin' ? campusId : null
     });
@@ -130,7 +130,7 @@ app.post('/api/auth/login', async (req, res) => {
     }
 
     const token = jwt.sign(
-      { id: user._id, role: user.role },
+      { id: user._id, role: user.role, campus: user.campus },
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
@@ -155,6 +155,16 @@ app.post('/api/campuses', authMiddleware, async (req, res) => {
   }
 });
 
+// Campus: Get All
+app.get('/api/campuses', async (req, res) => {
+  try {
+    const campuses = await Campus.find();
+    res.json(campuses);
+  } catch {
+    res.status(500).json({ message: 'Error fetching campuses' });
+  }
+});
+
 // Teaching: Post Teaching
 app.post('/api/teachings', authMiddleware, async (req, res) => {
   const { title, description, videoUrl, campusId } = req.body;
@@ -174,17 +184,36 @@ app.post('/api/teachings', authMiddleware, async (req, res) => {
   }
 });
 
-// Teaching: Get All Teachings (optionally filter by campus)
+// Teaching: Get All Teachings (Main page or by campus)
 app.get('/api/teachings', async (req, res) => {
   const { campusId } = req.query;
   try {
-    const teachings = await Teaching.find(campusId ? { campus: campusId } : { campus: null })
+    const teachings = await Teaching.find(
+      campusId ? { campus: campusId } : { campus: null }
+    )
       .populate('postedBy', 'name role')
       .sort({ createdAt: -1 });
 
     res.json(teachings);
   } catch {
     res.status(500).json({ message: 'Error fetching teachings' });
+  }
+});
+
+// Teaching: Get Logged-in Admin's Teachings
+app.get('/api/my-teachings', authMiddleware, async (req, res) => {
+  try {
+    const filter = req.user.role === 'campus-admin'
+      ? { campus: req.user.campus }
+      : {};
+
+    const teachings = await Teaching.find(filter)
+      .populate('campus')
+      .sort({ createdAt: -1 });
+
+    res.json(teachings);
+  } catch {
+    res.status(500).json({ message: 'Error fetching your teachings' });
   }
 });
 
