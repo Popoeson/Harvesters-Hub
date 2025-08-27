@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Harvesters Hub</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f8f9fa;
+      color: #333;
+    }
+
+    /* Navbar */
+    .navbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #fff;
+      padding: 10px 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .navbar img {
+      height: 40px;
+    }
+    .navbar h1 {
+      flex: 1;
+      text-align: center;
+      font-size: 18px;
+      font-weight: bold;
+    }
+    .sort {
+      font-size: 14px;
+      padding: 6px 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+
+    /* Cards */
+    .container {
+      max-width: 900px;
+      margin: 20px auto;
+      padding: 0 15px;
+    }
+    .card {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+    .card img {
+      width: 100%;
+      display: block;
+    }
+    .card .info {
+      padding: 10px 15px;
+      font-size: 14px;
+    }
+    .card .info p {
+      margin: 5px 0;
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <div class="navbar">
+    <img src="logo.png" alt="Harvesters Logo">
+    <h1>Welcome To The Harvesters Hub</h1>
+    <select class="sort" id="sortSelect">
+      <option value="newest">Newest</option>
+      <option value="oldest">Oldest</option>
+    </select>
+  </div>
+
+  <!-- Container for posts -->
+  <div class="container" id="postsContainer">
+    <!-- Cards will be injected here -->
+  </div>
+
+  <script>
+    // Dummy data for now
+    const posts = [
+      {
+        imageUrl: "https://via.placeholder.com/600x300.png?text=Teaching+1",
+        date: "2025-08-25",
+        comments: ["Great message!", "Loved this 🙌"]
+      },
+      {
+        imageUrl: "https://via.placeholder.com/600x300.png?text=Teaching+2",
+        date: "2025-08-20",
+        comments: ["So inspiring ❤️"]
+      }
+    ];
+
+    const postsContainer = document.getElementById("postsContainer");
+    const sortSelect = document.getElementById("sortSelect");
+
+    function renderPosts() {
+      postsContainer.innerHTML = "";
+      posts.forEach(post => {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <img src="${post.imageUrl}" alt="Post Image">
+          <div class="info">
+            <p>📅 Uploaded: ${post.date}</p>
+            <p>💬 Comments: ${post.comments.length}</p>
+          </div>
+        `;
+        postsContainer.appendChild(card);
+      });
+    }
+
+    // Sort function
+    sortSelect.addEventListener("change", () => {
+      if (sortSelect.value === "newest") {
+        posts.sort((a, b) => new Date(b.date) - new Date(a.date));
+      } else {
+        posts.sort((a, b) => new Date(a.date) - new Date(b.date));
+      }
+      renderPosts();
+    });
+
+    // Initial render
+    renderPosts();
+  </script>
+</body>
+</html>
