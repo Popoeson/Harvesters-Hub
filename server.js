@@ -55,7 +55,7 @@ app.post("/api/upload", upload.single("image"), async (req, res) => {
     }
 
     const newImage = new Image({
-      url: req.file.path, // Cloudinary URL
+      url: req.file.path,
       comments: req.body.comments || "",
     });
 
@@ -68,8 +68,12 @@ app.post("/api/upload", upload.single("image"), async (req, res) => {
       image: newImage
     });
   } catch (error) {
-    console.error("Upload error:", error);
-    res.status(500).json({ success: false, message: error.message || "Upload failed" });
+    console.error("Upload error:", error); // log full error object
+    res.status(500).json({
+      success: false,
+      message: error.message || "Upload failed",
+      error: error.stack, // include more info for debugging
+    });
   }
 });
 
