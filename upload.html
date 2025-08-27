@@ -139,25 +139,31 @@
         formData.append("image", file);
 
         try {
-          const res = await fetch("https://harvesters-hub-fbgo.onrender.com/api/upload", {
-            method: "POST",
-            body: formData
-          });
-          const data = await res.json();
+  const res = await fetch("https://harvesters-hub-fbgo.onrender.com/api/upload", {
+    method: "POST",
+    body: formData
+  });
 
-          if (data.success) {
-            console.log("Uploaded:", data.url);
-          } else {
-            alert("Upload failed: " + data.message);
-          }
-        } catch (err) {
-          alert("Error: " + err.message);
-        }
-      }
+  let data;
+  try {
+    data = await res.json();
+  } catch (parseErr) {
+    const text = await res.text();
+    throw new Error("Server returned non-JSON: " + text);
+  }
+
+  if (data.success) {
+    console.log("Uploaded:", data.url);
+  } else {
+    alert("Upload failed: " + (data.message || "Unknown error"));
+  }
+} catch (err) {
+  alert("Error: " + err.message);
+    }
 
       uploadBtn.disabled = false;
       uploadBtn.textContent = "Upload";
-      alert("All uploads completed!");
+     // alert("All uploads completed!");
     });
   </script>
 </body>
