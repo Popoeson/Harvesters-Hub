@@ -110,7 +110,7 @@
 
   let selectedFiles = [];
 
-  // Show previews before upload
+  // Show previews
   fileInput.addEventListener("change", (e) => {
     preview.innerHTML = "";
     selectedFiles = [...e.target.files];
@@ -126,7 +126,7 @@
     });
   });
 
-  // Upload files to backend
+  // Upload files
   uploadBtn.addEventListener("click", async () => {
     if (selectedFiles.length === 0) return alert("Please select images first.");
 
@@ -143,30 +143,27 @@
           body: formData
         });
 
+        // ✅ safely try parsing JSON, else fall back to text
         let data;
+        const text = await res.text();  
         try {
-          data = await res.json();
-        } catch (parseErr) {
-          // if server didn’t return valid JSON, fallback
-          const text = await res.text();
+          data = JSON.parse(text);
+        } catch {
           throw new Error("Server returned non-JSON: " + text);
         }
 
         if (data.success) {
-          console.log("Uploaded:", data.url);
+          console.log("✅ Uploaded:", data.url);
         } else {
-          alert("Upload failed: " + (data.message || "Unknown error"));
+          alert("❌ Upload failed: " + (data.message || "Unknown error"));
         }
-
       } catch (err) {
-        alert("Error: " + err.message);
+        alert("⚠️ Error: " + err.message);
       }
     }
 
-    // ✅ cleanup after all uploads
     uploadBtn.disabled = false;
     uploadBtn.textContent = "Upload";
-    // alert("All uploads completed!");
   });
 </script>
 </body>
