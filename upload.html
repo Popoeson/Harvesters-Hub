@@ -145,29 +145,29 @@
 
         let data;
         try {
-  const rawText = await res.text(); // read once
-  let data;
+          data = await res.json();
+        } catch (parseErr) {
+          // if server didn’t return valid JSON, fallback
+          const text = await res.text();
+          throw new Error("Server returned non-JSON: " + text);
+        }
 
-  try {
-    data = JSON.parse(rawText); // attempt JSON parse
-  } catch (parseErr) {
-    throw new Error("Server returned non-JSON: " + rawText);
-  }
+        if (data.success) {
+          console.log("Uploaded:", data.url);
+        } else {
+          alert("Upload failed: " + (data.message || "Unknown error"));
+        }
 
-  if (data.success) {
-    console.log("Uploaded:", data.url);
-  } else {
-    alert("Upload failed: " + (data.message || "Unknown error"));
-  }
-} catch (err) {
-  alert("Error: " + err.message);
-  }
+      } catch (err) {
+        alert("Error: " + err.message);
+      }
+    }
 
     // ✅ cleanup after all uploads
     uploadBtn.disabled = false;
     uploadBtn.textContent = "Upload";
     // alert("All uploads completed!");
   });
-  </script>
+</script>
 </body>
 </html>
