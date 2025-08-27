@@ -20,15 +20,18 @@
       background: #fff;
       padding: 10px 20px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      flex-wrap: wrap; /* ✅ allow wrapping on small screens */
+      gap: 10px;
     }
     .navbar img {
       height: 40px;
     }
     .navbar h1 {
-      flex: 1;
+      flex-grow: 1;
       text-align: center;
       font-size: 18px;
       font-weight: bold;
+      margin: 0;
     }
     .sort {
       font-size: 14px;
@@ -60,6 +63,25 @@
     }
     .card .info p {
       margin: 5px 0;
+    }
+
+    /* ✅ Responsive tweaks */
+    @media (max-width: 600px) {
+      .navbar {
+        justify-content: center;
+      }
+      .navbar img {
+        order: 1;
+      }
+      .navbar h1 {
+        order: 2;
+        flex: 1 1 100%;
+        text-align: center;
+        font-size: 16px;
+      }
+      .sort {
+        order: 3;
+      }
     }
   </style>
 </head>
