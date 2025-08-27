@@ -49,23 +49,24 @@ const Image = mongoose.model("Image", ImageSchema);
 
 // Upload image (Admin)
 app.post("/api/upload", upload.single("image"), async (req, res) => {
-    try {
-        if (!req.file) {
-            return res.status(400).json({ error: "No file uploaded" });
-        }
-
-        // multer-storage-cloudinary attaches extra info
-        const newImage = new Image({
-            url: req.file.path || req.file.secure_url, // Cloudinary URL
-            comments: req.body.comments || "",
-        });
-
-        await newImage.save();
-        res.json({ message: "Image uploaded successfully", image: newImage });
-    } catch (error) {
-        console.error("Upload error:", error); // log full error instead of [object Object]
-        res.status(500).json({ error: "Upload failed", details: error.message });
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded" });
     }
+
+    console.log("Uploaded file details:", req.file); // 👈 Debug
+
+    const newImage = new Image({
+      url: req.file.path || req.file.secure_url,  // 👈 prefer secure_url
+      comments: req.body.comments || "",
+    });
+
+    await newImage.save();
+    res.json({ message: "Image uploaded successfully", image: newImage });
+  } catch (error) {
+    console.error("Upload error:", error);
+    res.status(500).json({ error: error.message || "Upload failed" });
+  }
 });
 
 // Fetch all images (Homepage)
