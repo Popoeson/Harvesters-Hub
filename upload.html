@@ -159,12 +159,12 @@
   }
 } catch (err) {
   alert("Error: " + err.message);
+} finally {
+  // ✅ always runs whether success or error
+  uploadBtn.disabled = false;
+  uploadBtn.textContent = "Upload";
+  // alert("All uploads completed!");
     }
-
-      uploadBtn.disabled = false;
-      uploadBtn.textContent = "Upload";
-     // alert("All uploads completed!");
-    });
   </script>
 </body>
 </html>
