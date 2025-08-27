@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Upload Images</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      justify-content: center;
+      padding: 20px;
+    }
+    .container {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      width: 100%;
+      max-width: 600px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    h2 { text-align: center; }
+    .preview {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .preview img {
+      width: 100%;
+      height: auto;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+    button {
+      margin-top: 15px;
+      width: 100%;
+      padding: 12px;
+      background: #28a745;
+      border: none;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 6px;
+    }
+    button:disabled {
+      background: #aaa;
+      cursor: not-allowed;
+    }
+    
+      /* Navbar */
+    .navbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #fff;
+      padding: 10px 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      flex-wrap: wrap; 
+      gap: 10px;
+      margin: 5px;
+      border-radius: 5px;
+    }
+    .navbar img {
+      height: 30px;
+    }
+    .navbar h1 {
+      flex-grow: 1;
+      text-align: center;
+      font-size: 18px;
+      font-weight: bold;
+      margin: 0;
+    }
+    /* ✅ Responsive tweaks */
+    @media (max-width: 600px) {
+      .navbar {
+        justify-content: center;
+      }
+      .navbar img {
+        order: 1;
+      }
+      .navbar h1 {
+        order: 2;
+        flex: 1 1 100%;
+        text-align: center;
+        font-size: 16px;
+      }
+  </style>
+</head>
+<body>
+    
+     <!-- Navbar -->
+  <div class="navbar">
+    <img src="logo.png" alt="Harvesters Logo">
+    <h1>Welcome To The Harvesters Hub</h1>
+    
+  </div>
+  
+  <div class="container">
+    <h2>Upload Images</h2>
+    <input type="file" id="fileInput" accept="image/*" multiple>
+    <button id="uploadBtn">Upload</button>
+
+    <div class="preview" id="preview"></div>
+  </div>
+
+  <script>
+    const fileInput = document.getElementById("fileInput");
+    const uploadBtn = document.getElementById("uploadBtn");
+    const preview = document.getElementById("preview");
+
+    let selectedFiles = [];
+
+    // Show previews before upload
+    fileInput.addEventListener("change", (e) => {
+      preview.innerHTML = "";
+      selectedFiles = [...e.target.files];
+
+      selectedFiles.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = document.createElement("img");
+          img.src = e.target.result;
+          preview.appendChild(img);
+        };
+        reader.readAsDataURL(file);
+      });
+    });
+
+    // Upload files to backend
+    uploadBtn.addEventListener("click", async () => {
+      if (selectedFiles.length === 0) return alert("Please select images first.");
+
+      uploadBtn.disabled = true;
+      uploadBtn.textContent = "Uploading...";
+
+      for (let file of selectedFiles) {
+        const formData = new FormData();
+        formData.append("image", file);
+
+        try {
+          const res = await fetch("https://harvesters-hub-fbgo.onrender.com/api/upload", {
+            method: "POST",
+            body: formData
+          });
+          const data = await res.json();
+
+          if (data.success) {
+            console.log("Uploaded:", data.url);
+          } else {
+            alert("Upload failed: " + data.message);
+          }
+        } catch (err) {
+          alert("Error: " + err.message);
+        }
+      }
+
+      uploadBtn.disabled = false;
+      uploadBtn.textContent = "Upload";
+      alert("All uploads completed!");
+    });
+  </script>
+</body>
+</html>
