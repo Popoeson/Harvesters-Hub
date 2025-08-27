@@ -3,52 +3,84 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Upload Images</title>
+  <title>Upload Images</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f4f4f4;
-      justify-content: center;
-      padding: 20px;
+      background: #f4f6f9;
+      margin: 0;
+      padding: 0;
     }
     .container {
-      background: white;
+      max-width: 700px;
+      margin: 50px auto;
+      background: #fff;
       padding: 20px;
       border-radius: 10px;
-      width: 100%;
-      max-width: 600px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      box-shadow: 0 3px 6px rgba(0,0,0,0.1);
     }
-    h2 { text-align: center; }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+    }
+    .file-input {
+      margin-bottom: 15px;
+    }
     .preview {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-      gap: 10px;
-      margin-top: 20px;
-    }
-    .preview img {
-      width: 100%;
-      height: auto;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-    }
-    button {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
       margin-top: 15px;
+    }
+    .preview-item {
+      border: 1px solid #ddd;
+      padding: 10px;
+      border-radius: 8px;
+      background: #fafafa;
+      width: 150px;
+      text-align: center;
+    }
+    .preview-item img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 5px;
+      margin-bottom: 8px;
+    }
+    .preview-item textarea {
       width: 100%;
-      padding: 12px;
+      resize: none;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      padding: 5px;
+      font-size: 13px;
+    }
+    .btn {
       background: #28a745;
-      border: none;
       color: white;
-      font-size: 16px;
-      cursor: pointer;
+      border: none;
+      padding: 12px 20px;
       border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      display: block;
+      margin: 20px auto 0;
     }
-    button:disabled {
-      background: #aaa;
-      cursor: not-allowed;
+    .btn:hover {
+      background: #218838;
     }
-    
-      /* Navbar */
+    .message {
+      text-align: center;
+      margin-top: 15px;
+      font-size: 14px;
+    }
+    .success {
+      color: green;
+    }
+    .error {
+      color: red;
+    }
+       /* Navbar */
     .navbar {
       display: flex;
       align-items: center;
@@ -89,49 +121,87 @@
 </head>
 <body>
     
-     <!-- Navbar -->
+      <!-- Navbar -->
   <div class="navbar">
-    <img src="uploads/harvesters.png" alt="Harvesters Logo">
+    <img src="logo.png" alt="Harvesters Logo">
     <h1>Welcome To The Harvesters Hub</h1>
     
   </div>
   
   <div class="container">
     <h2>Upload Images</h2>
-    <input type="file" id="fileInput" accept="image/*" multiple>
-    <button id="uploadBtn">Upload</button>
-
-    <div class="preview" id="preview"></div>
+    <input type="file" id="imageInput" class="file-input" multiple accept="image/*" />
+    <div id="preview" class="preview"></div>
+    <button id="uploadBtn" class="btn">Upload</button>
+    <div id="message" class="message"></div>
   </div>
-<script>
-document.getElementById("uploadForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
 
-  const formData = new FormData();
-  formData.append("image", document.getElementById("image").files[0]);
-  formData.append("comments", document.getElementById("comments").value);
+  <script>
+    const imageInput = document.getElementById("imageInput");
+    const preview = document.getElementById("preview");
+    const uploadBtn = document.getElementById("uploadBtn");
+    const message = document.getElementById("message");
 
-  try {
-    const res = await fetch("https://your-backend.onrender.com/api/upload", {
-      method: "POST",
-      body: formData
+    let files = [];
+
+    // Preview selected files
+    imageInput.addEventListener("change", () => {
+      files = Array.from(imageInput.files);
+      preview.innerHTML = "";
+
+      files.forEach((file, index) => {
+        const reader = new FileReader();
+        reader.onload = e => {
+          const div = document.createElement("div");
+          div.classList.add("preview-item");
+
+          div.innerHTML = `
+            <img src="${e.target.result}" alt="Preview">
+            <textarea placeholder="Enter comment" data-index="${index}"></textarea>
+          `;
+
+          preview.appendChild(div);
+        };
+        reader.readAsDataURL(file);
+      });
     });
 
-    // only call res.json() once
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({ message: "Unknown error" }));
-      throw new Error(err.message || "Upload failed");
-    }
+    // Upload images
+    uploadBtn.addEventListener("click", async () => {
+      if (files.length === 0) {
+        message.textContent = "Please select at least one image.";
+        message.className = "message error";
+        return;
+      }
 
-    const data = await res.json();
-    console.log("Upload success:", data);
-    alert("✅ " + data.message);
+      message.textContent = "Uploading...";
+      message.className = "message";
 
-  } catch (err) {
-    console.error("Upload error:", err);
-    alert("❌ " + err.message);
-  }
-});
-</script>
+      try {
+        for (let i = 0; i < files.length; i++) {
+          const formData = new FormData();
+          formData.append("image", files[i]);
+
+          const commentInput = preview.querySelector(`textarea[data-index="${i}"]`);
+          formData.append("comments", commentInput.value);
+
+          const res = await fetch("https://harvesters-hub-fbgo.onrender.com/api/upload", {
+            method: "POST",
+            body: formData
+          });
+
+          const data = await res.json();
+          if (!data.success) throw new Error(data.message || "Upload failed");
+
+          message.textContent = "Images uploaded successfully!";
+          message.className = "message success";
+        }
+      } catch (err) {
+        console.error(err);
+        message.textContent = "Error: " + err.message;
+        message.className = "message error";
+      }
+    });
+  </script>
 </body>
-</html>
+      </html>
