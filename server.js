@@ -77,12 +77,6 @@ app.get("/api/images", async (req, res) => {
     }
 });
 
-// Serve frontend if needed
-app.use(express.static(path.join(__dirname, "public")));
-
-app.get("*", (req, res) => {
-    res.sendFile(path.join(__dirname, "public", "index.html"));
-});
 
 // Start server
 const PORT = process.env.PORT || 5000;
