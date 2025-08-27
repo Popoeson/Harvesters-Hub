@@ -47,32 +47,37 @@ const Image = mongoose.model("Image", ImageSchema);
 
 // ROUTES
 
-// Upload image (Admin)
-app.post("/api/upload", upload.single("image"), async (req, res) => {
+// Upload multiple images (Admin)
+app.post("/api/upload", upload.array("images", 10), async (req, res) => {
   try {
-    if (!req.file || !req.file.path) {
-      return res.status(400).json({ success: false, message: "No file uploaded" });
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ success: false, message: "No files uploaded" });
     }
 
-    const newImage = new Image({
-      url: req.file.path,
-      comments: req.body.comments || "",
-    });
+    const comment = req.body.comments || "";
 
-    await newImage.save();
+    // Save each image with the same comment
+    const savedImages = [];
+    for (const file of req.files) {
+      const newImage = new Image({
+        url: file.path,  // Cloudinary gives us the path
+        comments: comment,
+      });
+      await newImage.save();
+      savedImages.push(newImage);
+    }
 
     res.json({
       success: true,
-      message: "Image uploaded successfully",
-      url: newImage.url,
-      image: newImage
+      message: `${savedImages.length} image(s) uploaded successfully`,
+      images: savedImages
     });
   } catch (error) {
-    console.error("Upload error:", error); // log full error object
+    console.error("Upload error:", error);
     res.status(500).json({
       success: false,
       message: error.message || "Upload failed",
-      error: error.stack, // include more info for debugging
+      error: error.stack,
     });
   }
 });
