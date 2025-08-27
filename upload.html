@@ -103,68 +103,69 @@
 
     <div class="preview" id="preview"></div>
   </div>
+<script>
+  const fileInput = document.getElementById("fileInput");
+  const uploadBtn = document.getElementById("uploadBtn");
+  const preview = document.getElementById("preview");
 
-  <script>
-    const fileInput = document.getElementById("fileInput");
-    const uploadBtn = document.getElementById("uploadBtn");
-    const preview = document.getElementById("preview");
+  let selectedFiles = [];
 
-    let selectedFiles = [];
+  // Show previews before upload
+  fileInput.addEventListener("change", (e) => {
+    preview.innerHTML = "";
+    selectedFiles = [...e.target.files];
 
-    // Show previews before upload
-    fileInput.addEventListener("change", (e) => {
-      preview.innerHTML = "";
-      selectedFiles = [...e.target.files];
-
-      selectedFiles.forEach(file => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const img = document.createElement("img");
-          img.src = e.target.result;
-          preview.appendChild(img);
-        };
-        reader.readAsDataURL(file);
-      });
+    selectedFiles.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = document.createElement("img");
+        img.src = e.target.result;
+        preview.appendChild(img);
+      };
+      reader.readAsDataURL(file);
     });
-
-    // Upload files to backend
-    uploadBtn.addEventListener("click", async () => {
-      if (selectedFiles.length === 0) return alert("Please select images first.");
-
-      uploadBtn.disabled = true;
-      uploadBtn.textContent = "Uploading...";
-
-      for (let file of selectedFiles) {
-        const formData = new FormData();
-        formData.append("image", file);
-
-        try {
-  const res = await fetch("https://harvesters-hub-fbgo.onrender.com/api/upload", {
-    method: "POST",
-    body: formData
   });
 
-  let data;
-  try {
-    data = await res.json();
-  } catch (parseErr) {
-    const text = await res.text();
-    throw new Error("Server returned non-JSON: " + text);
-  }
+  // Upload files to backend
+  uploadBtn.addEventListener("click", async () => {
+    if (selectedFiles.length === 0) return alert("Please select images first.");
 
-  if (data.success) {
-    console.log("Uploaded:", data.url);
-  } else {
-    alert("Upload failed: " + (data.message || "Unknown error"));
-  }
-} catch (err) {
-  alert("Error: " + err.message);
-} finally {
-  // ✅ always runs whether success or error
-  uploadBtn.disabled = false;
-  uploadBtn.textContent = "Upload";
-  // alert("All uploads completed!");
+    uploadBtn.disabled = true;
+    uploadBtn.textContent = "Uploading...";
+
+    for (let file of selectedFiles) {
+      const formData = new FormData();
+      formData.append("image", file);
+
+      try {
+        const res = await fetch("https://harvesters-hub-fbgo.onrender.com/api/upload", {
+          method: "POST",
+          body: formData
+        });
+
+        let data;
+        try {
+          data = await res.json();
+        } catch (parseErr) {
+          const text = await res.text();
+          throw new Error("Server returned non-JSON: " + text);
+        }
+
+        if (data.success) {
+          console.log("Uploaded:", data.url);
+        } else {
+          alert("Upload failed: " + (data.message || "Unknown error"));
+        }
+      } catch (err) {
+        alert("Error: " + err.message);
+      }
     }
+
+    // ✅ cleanup after all uploads
+    uploadBtn.disabled = false;
+    uploadBtn.textContent = "Upload";
+    // alert("All uploads completed!");
+  });
   </script>
 </body>
 </html>
