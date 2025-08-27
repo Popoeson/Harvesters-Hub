@@ -50,16 +50,21 @@ const Image = mongoose.model("Image", ImageSchema);
 // Upload image (Admin)
 app.post("/api/upload", upload.single("image"), async (req, res) => {
     try {
+        if (!req.file) {
+            return res.status(400).json({ error: "No file uploaded" });
+        }
+
+        // multer-storage-cloudinary attaches extra info
         const newImage = new Image({
-            url: req.file.path, // cloudinary URL
+            url: req.file.path || req.file.secure_url, // Cloudinary URL
             comments: req.body.comments || "",
         });
 
         await newImage.save();
         res.json({ message: "Image uploaded successfully", image: newImage });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: "Upload failed" });
+        console.error("Upload error:", error); // log full error instead of [object Object]
+        res.status(500).json({ error: "Upload failed", details: error.message });
     }
 });
 
@@ -77,4 +82,4 @@ app.get("/api/images", async (req, res) => {
 
 // Start server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
