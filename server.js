@@ -50,22 +50,26 @@ const Image = mongoose.model("Image", ImageSchema);
 // Upload image (Admin)
 app.post("/api/upload", upload.single("image"), async (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({ error: "No file uploaded" });
+    if (!req.file || !req.file.path) {
+      return res.status(400).json({ success: false, message: "No file uploaded" });
     }
 
-    console.log("Uploaded file details:", req.file); // 👈 Debug
-
     const newImage = new Image({
-      url: req.file.path || req.file.secure_url,  // 👈 prefer secure_url
+      url: req.file.path, // Cloudinary URL
       comments: req.body.comments || "",
     });
 
     await newImage.save();
-    res.json({ message: "Image uploaded successfully", image: newImage });
+
+    res.json({
+      success: true,
+      message: "Image uploaded successfully",
+      url: newImage.url,
+      image: newImage
+    });
   } catch (error) {
     console.error("Upload error:", error);
-    res.status(500).json({ error: error.message || "Upload failed" });
+    res.status(500).json({ success: false, message: error.message || "Upload failed" });
   }
 });
 
