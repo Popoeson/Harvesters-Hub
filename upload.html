@@ -104,67 +104,34 @@
     <div class="preview" id="preview"></div>
   </div>
 <script>
-  const fileInput = document.getElementById("fileInput");
-  const uploadBtn = document.getElementById("uploadBtn");
-  const preview = document.getElementById("preview");
+document.getElementById("uploadForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
 
-  let selectedFiles = [];
+  const formData = new FormData();
+  formData.append("image", document.getElementById("image").files[0]);
+  formData.append("comments", document.getElementById("comments").value);
 
-  // Show previews
-  fileInput.addEventListener("change", (e) => {
-    preview.innerHTML = "";
-    selectedFiles = [...e.target.files];
-
-    selectedFiles.forEach(file => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const img = document.createElement("img");
-        img.src = e.target.result;
-        preview.appendChild(img);
-      };
-      reader.readAsDataURL(file);
+  try {
+    const res = await fetch("https://your-backend.onrender.com/api/upload", {
+      method: "POST",
+      body: formData
     });
-  });
 
-  // Upload files
-  uploadBtn.addEventListener("click", async () => {
-    if (selectedFiles.length === 0) return alert("Please select images first.");
-
-    uploadBtn.disabled = true;
-    uploadBtn.textContent = "Uploading...";
-
-    for (let file of selectedFiles) {
-      const formData = new FormData();
-      formData.append("image", file);
-
-      try {
-        const res = await fetch("https://harvesters-hub-fbgo.onrender.com/api/upload", {
-          method: "POST",
-          body: formData
-        });
-
-        // ✅ safely try parsing JSON, else fall back to text
-        let data;
-        const text = await res.text();  
-        try {
-          data = JSON.parse(text);
-        } catch {
-          throw new Error("Server returned non-JSON: " + text);
-        }
-
-        if (data.success) {
-          console.log("✅ Uploaded:", data.url);
-        } else {
-          alert("❌ Upload failed: " + (data.message || "Unknown error"));
-        }
-      } catch (err) {
-        console.log("⚠️ Error: " + err.message);
-      }
+    // only call res.json() once
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ message: "Unknown error" }));
+      throw new Error(err.message || "Upload failed");
     }
 
-    uploadBtn.disabled = false;
-    uploadBtn.textContent = "Upload";
-  });
+    const data = await res.json();
+    console.log("Upload success:", data);
+    alert("✅ " + data.message);
+
+  } catch (err) {
+    console.error("Upload error:", err);
+    alert("❌ " + err.message);
+  }
+});
 </script>
 </body>
 </html>
