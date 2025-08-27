@@ -1,7 +1,7 @@
 {
   "name": "harvesters-hub-backend",
   "version": "1.0.0",
-  "description": "Backend for Harvesters Hub church website",
+  "description": "Backend for Harvesters Hub - image uploads with Cloudinary",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -11,11 +11,13 @@
   "author": "Your Name",
   "license": "ISC",
   "dependencies": {
+    "cloudinary": "^1.41.1",
     "cors": "^2.8.5",
-    "dotenv": "^16.3.1",
+    "dotenv": "^16.4.5",
     "express": "^4.19.2",
-    "jsonwebtoken": "^9.0.2",
-    "mongoose": "^7.6.1"
+    "mongoose": "^8.3.4",
+    "multer": "^1.4.5-lts.1",
+    "multer-storage-cloudinary": "^4.0.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.0"
