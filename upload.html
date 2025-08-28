@@ -3,84 +3,95 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Upload Images</title>
+  <title>Admin – Upload Images</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       background: #f4f6f9;
       margin: 0;
-      padding: 0;
+      padding: 24px;
+      color: #222;
     }
     .container {
-      max-width: 700px;
-      margin: 50px auto;
+      max-width: 900px;
+      margin: 0 auto;
       background: #fff;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+      padding: 20px 20px 28px;
+      border-radius: 12px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.08);
     }
-    h2 {
+    h1 {
+      margin: 0 0 16px 0;
+      font-size: 20px;
       text-align: center;
-      margin-bottom: 20px;
-      color: #333;
     }
-    .file-input {
-      margin-bottom: 15px;
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
     }
-    .preview {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 15px;
-      margin-top: 15px;
-    }
-    .preview-item {
-      border: 1px solid #ddd;
+    .controls textarea {
+      width: 100%;
+      min-height: 80px;
       padding: 10px;
       border-radius: 8px;
+      border: 1px solid #d9d9d9;
+      font-size: 14px;
+      resize: vertical;
+    }
+    .controls input[type="file"] {
+      padding: 10px;
+      border: 1px solid #d9d9d9;
+      border-radius: 8px;
       background: #fafafa;
-      width: 150px;
-      text-align: center;
     }
-    .preview-item img {
-      max-width: 100%;
-      height: auto;
-      border-radius: 5px;
-      margin-bottom: 8px;
+    .preview-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 14px;
+      margin-top: 8px;
     }
-    .preview-item textarea {
+    .card {
+      background: #fafafa;
+      border: 1px solid #eee;
+      border-radius: 10px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .card img {
       width: 100%;
-      resize: none;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-      padding: 5px;
-      font-size: 13px;
+      height: 120px;
+      object-fit: cover;
+      display: block;
+      background: #ddd;
     }
     .btn {
+      margin-top: 18px;
       background: #28a745;
       color: white;
       border: none;
-      padding: 12px 20px;
-      border-radius: 6px;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 15px;
       cursor: pointer;
-      font-size: 16px;
-      display: block;
-      margin: 20px auto 0;
+      width: 100%;
     }
-    .btn:hover {
-      background: #218838;
+    .btn:disabled {
+      background: #a6a6a6;
+      cursor: not-allowed;
     }
-    .message {
+    .msg {
       text-align: center;
-      margin-top: 15px;
+      margin-top: 12px;
       font-size: 14px;
     }
-    .success {
-      color: green;
-    }
-    .error {
-      color: red;
-    }
-       /* Navbar */
+    .msg.error { color: #d9534f; }
+    .msg.success { color: #28a745; }
+    
+    
+      /* Navbar */
     .navbar {
       display: flex;
       align-items: center;
@@ -121,87 +132,106 @@
 </head>
 <body>
     
-      <!-- Navbar -->
+    <!-- Navbar -->
   <div class="navbar">
-    <img src="uploads/harvesters.png" alt="Harvesters Logo">
+    <img src="logo.png" alt="Harvesters Logo">
     <h1>Welcome To The Harvesters Hub</h1>
     
   </div>
-  
   <div class="container">
-    <h2>Upload Images</h2>
-    <input type="file" id="imageInput" class="file-input" multiple accept="image/*" />
-    <div id="preview" class="preview"></div>
+    <h1>Upload Images (Multiple) with One Comment</h1>
+
+    <div class="controls">
+      <input id="fileInput" type="file" accept="image/*" multiple />
+      <textarea id="commentInput" placeholder="Enter ONE comment that will apply to all selected images"></textarea>
+    </div>
+
+    <div id="preview" class="preview-grid"></div>
+
     <button id="uploadBtn" class="btn">Upload</button>
-    <div id="message" class="message"></div>
+    <div id="message" class="msg"></div>
   </div>
 
   <script>
-    const imageInput = document.getElementById("imageInput");
+    const fileInput = document.getElementById("fileInput");
+    const commentInput = document.getElementById("commentInput");
     const preview = document.getElementById("preview");
     const uploadBtn = document.getElementById("uploadBtn");
     const message = document.getElementById("message");
 
     let files = [];
 
-    // Preview selected files
-    imageInput.addEventListener("change", () => {
-      files = Array.from(imageInput.files);
+    // Preview files when chosen
+    fileInput.addEventListener("change", () => {
+      files = Array.from(fileInput.files);
       preview.innerHTML = "";
 
-      files.forEach((file, index) => {
+      files.forEach(file => {
         const reader = new FileReader();
         reader.onload = e => {
-          const div = document.createElement("div");
-          div.classList.add("preview-item");
-
-          div.innerHTML = `
-            <img src="${e.target.result}" alt="Preview">
-            <textarea placeholder="Enter comment" data-index="${index}"></textarea>
-          `;
-
-          preview.appendChild(div);
+          const card = document.createElement("div");
+          card.className = "card";
+          card.innerHTML = `<img src="${e.target.result}" alt="preview">`;
+          preview.appendChild(card);
         };
         reader.readAsDataURL(file);
       });
     });
 
-    // Upload images
+    // Upload handler
     uploadBtn.addEventListener("click", async () => {
+      message.textContent = "";
+      message.className = "msg";
+
       if (files.length === 0) {
         message.textContent = "Please select at least one image.";
-        message.className = "message error";
+        message.classList.add("error");
         return;
       }
 
-      message.textContent = "Uploading...";
-      message.className = "message";
+      const comments = commentInput.value.trim();
 
+      uploadBtn.disabled = true;
       try {
-        for (let i = 0; i < files.length; i++) {
-          const formData = new FormData();
-          formData.append("image", files[i]);
+        // Build FormData: multiple files under "images", plus one "comments"
+        const formData = new FormData();
+        files.forEach(f => formData.append("images", f));
+        formData.append("comments", comments);
 
-          const commentInput = preview.querySelector(`textarea[data-index="${i}"]`);
-          formData.append("comments", commentInput.value);
+        const res = await fetch("https://harvesters-hub-fbgo.onrender.com/api/upload", {
+          method: "POST",
+          body: formData
+        });
 
-          const res = await fetch("https://harvesters-hub-fbgo.onrender.com/api/upload", {
-            method: "POST",
-            body: formData
-          });
-
-          const data = await res.json();
-          if (!data.success) throw new Error(data.message || "Upload failed");
-
-          message.textContent = "Images uploaded successfully!";
-          message.className = "message success";
+        // If not OK, try to extract error JSON (or text)
+        if (!res.ok) {
+          let errText = "";
+          try { errText = (await res.json()).message; }
+          catch { errText = await res.text(); }
+          throw new Error(errText || `Upload failed with status ${res.status}`);
         }
+
+        const data = await res.json();
+        if (!data.success) {
+          throw new Error(data.message || "Upload failed");
+        }
+
+        message.textContent = data.message || "Uploaded successfully!";
+        message.classList.add("success");
+
+        // Reset UI
+        fileInput.value = "";
+        commentInput.value = "";
+        preview.innerHTML = "";
+        files = [];
       } catch (err) {
-        console.error(err);
+        console.error("Upload error:", err);
         message.textContent = "Error: " + err.message;
-        message.className = "message error";
+        message.classList.add("error");
+      } finally {
+        uploadBtn.disabled = false;
       }
     });
   </script>
 </body>
-      </html>
+</html>
