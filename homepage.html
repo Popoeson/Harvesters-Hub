@@ -138,7 +138,8 @@
         _id: u.asset_id, // use asset_id as unique id
         fileUrl: u.secure_url,
         fileType: u.resource_type,
-        likes: 0 // start at 0 until backend like persistence is set up
+        likes: u.likes || 0, // ✅ use backend likes if available
+        liked: false          // track whether current user has liked
       }));
 
       renderPosts(uploads);
@@ -170,8 +171,9 @@
       actions.className = "actions";
 
       const likeIcon = document.createElement("i");
-      likeIcon.className = "fa-regular fa-heart";
-      if (upload.likes > 0) likeIcon.classList.add("liked");
+      likeIcon.className = upload.liked
+        ? "fa-solid fa-heart liked"
+        : "fa-regular fa-heart";
 
       const shareIcon = document.createElement("i");
       shareIcon.className = "fa-solid fa-share";
@@ -187,9 +189,13 @@
       likesCount.className = "likes";
       likesCount.textContent = `${upload.likes || 0} likes`;
 
-      // Like event
-      likeIcon.addEventListener("click", () => handleLike(upload._id, likeIcon, likesCount));
-      mediaEl.addEventListener("dblclick", () => handleLike(upload._id, likeIcon, likesCount));
+      // Like/Unlike toggle
+      likeIcon.addEventListener("click", () =>
+        handleLikeToggle(upload, likeIcon, likesCount)
+      );
+      mediaEl.addEventListener("dblclick", () =>
+        handleLikeToggle(upload, likeIcon, likesCount)
+      );
 
       // Share event
       shareIcon.addEventListener("click", () => {
@@ -214,16 +220,24 @@
     });
   }
 
-  async function handleLike(postId, icon, likesCountEl) {
+  async function handleLikeToggle(upload, icon, likesCountEl) {
     try {
-      const res = await fetch(`${API_URL}/uploads/${postId}/like`, {
+      const route = upload.liked ? "dislike" : "like";
+      const res = await fetch(`${API_URL}/uploads/${upload._id}/${route}`, {
         method: "POST"
       });
       const data = await res.json();
-      likesCountEl.textContent = `${data.likes} likes`;
-      icon.classList.add("liked");
+
+      upload.likes = data.likes;
+      upload.liked = !upload.liked; // toggle state
+
+      // Update UI
+      likesCountEl.textContent = `${upload.likes} likes`;
+      icon.className = upload.liked
+        ? "fa-solid fa-heart liked"
+        : "fa-regular fa-heart";
     } catch (err) {
-      console.error("Error liking post:", err);
+      console.error("Error toggling like:", err);
     }
   }
 
