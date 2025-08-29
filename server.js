@@ -59,7 +59,7 @@ const ImageSchema = new mongoose.Schema(
     url: { type: String, required: true },
     comments: { type: String, default: "" },
     likes: { type: Number, default: 0 },  // ✅ added this
-  //  likedBy: [{ type: String }],          // ✅ optional, store userIds if needed
+    likedBy: [{ type: String }],          // ✅ optional, store userIds if needed
     dateUploaded: { type: Date, default: Date.now }
   },
   { timestamps: true }
