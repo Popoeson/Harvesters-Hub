@@ -94,11 +94,17 @@ app.post("/api/upload", upload.array("images", 12), async (req, res) => {
 
     const saved = [];
     for (const file of req.files) {
-      // file.path is Cloudinary secure URL from multer-storage-cloudinary
-      const doc = new Image({ url: file.path, comments: comment });
-      await doc.save();
-      saved.push(doc);
-    }
+  console.log("Cloudinary upload file object:", file); // 🔍 Debug
+
+  const imageUrl = file.path || file.secure_url || file.url;
+  if (!imageUrl) {
+    throw new Error("No Cloudinary URL found in upload response");
+  }
+
+  const doc = new Image({ url: imageUrl, comments: comment });
+  await doc.save();
+  saved.push(doc);
+       }
 
     res.json({
       success: true,
@@ -123,6 +129,15 @@ app.use("/api", (req, res) => {
 // Always respond JSON to avoid "<!DOCTYPE" in consumers
 app.use((req, res) => {
   res.status(404).json({ success: false, message: "Not found" });
+});
+
+// Global error handler – always return JSON
+app.use((err, req, res, next) => {
+  console.error("Unhandled server error:", err);
+  res.status(500).json({
+    success: false,
+    message: err.message || "Internal Server Error"
+  });
 });
 
 // ---------- Start ----------
