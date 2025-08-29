@@ -116,27 +116,28 @@ app.get("/api/uploads", async (req, res) => {
   }
 });
 
-// Toggle Like (Like or Unlike)
+// Toggle Like (Like or Unlike) - works even without accounts
 app.post("/uploads/:id/like", async (req, res) => {
   try {
-    const { userId } = req.body; // send userId from frontend
+    const { deviceId } = req.body; // frontend will send a unique device/browser id
     const upload = await Upload.findById(req.params.id);
 
     if (!upload) return res.status(404).json({ error: "Not found" });
 
-    if (upload.likedBy.includes(userId)) {
-      // Already liked → Unlike
-      upload.likes = Math.max(0, upload.likes - 1); // prevent going negative
-      upload.likedBy = upload.likedBy.filter(id => id !== userId);
+    // If already liked by this device → Unlike
+    if (upload.likedBy.includes(deviceId)) {
+      upload.likes = Math.max(0, upload.likes - 1); // prevent negative
+      upload.likedBy = upload.likedBy.filter(id => id !== deviceId);
     } else {
-      // Not liked → Like
+      // If not liked yet → Like
       upload.likes += 1;
-      upload.likedBy.push(userId);
+      upload.likedBy.push(deviceId);
     }
 
     await upload.save();
     res.json({ likes: upload.likes });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: err.message });
   }
 });
