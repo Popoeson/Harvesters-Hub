@@ -71,12 +71,52 @@
       opacity: 0.9;
       display: none;
     }
+
+    .navbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #fff;
+      padding: 10px 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 5px;
+      border-radius: 5px;
+    }
+    .navbar img {
+      height: 30px;
+    }
+    .navbar h1 {
+      flex-grow: 1;
+      text-align: center;
+      font-size: 18px;
+      font-weight: bold;
+      margin: 0;
+    }
+
+    @media (max-width: 600px) {
+      .navbar {
+        justify-content: center;
+      }
+      .navbar img { order: 1; }
+      .navbar h1 {
+        order: 2;
+        flex: 1 1 100%;
+        text-align: center;
+        font-size: 16px;
+      }
+    }
   </style>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
   <header>
-    Harvesters Hub
+      <div class="navbar">
+    <img src="uploads/harvesters.png" alt="Harvesters Logo">
+    <h1>Harvesters Hub 😊</h1>
+      </div>
+    
   </header>
 
   <div id="feed"></div>
