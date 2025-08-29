@@ -53,7 +53,7 @@ const storage = new CloudinaryStorage({
 
 const upload = multer({ storage });
 
-// ---------- Mongoose Models ----------
+// ---------- Mongoose Schema---------
 const ImageSchema = new mongoose.Schema(
   {
     url: { type: String, required: true },
@@ -62,6 +62,8 @@ const ImageSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// ---------- Mongoose Models ---------
 const Image = mongoose.model("Image", ImageSchema);
 
 // ---------- Routes ----------
@@ -69,6 +71,27 @@ const Image = mongoose.model("Image", ImageSchema);
 // Health probe
 app.get("/health", (req, res) => {
   res.json({ ok: true, uptime: process.uptime() });
+});
+
+// 🔹 Upload route (MULTIPLE files + comment)
+app.post("/api/upload", upload.array("files"), async (req, res) => {
+  try {
+    const comment = req.body.comment || "";
+
+    const uploadedFiles = req.files.map(file => ({
+      url: file.path,        // Cloudinary URL
+      type: file.mimetype,   // image/jpeg, video/mp4, etc.
+    }));
+
+    res.json({
+      message: "Files uploaded successfully ✅",
+      comment,
+      files: uploadedFiles,
+    });
+  } catch (error) {
+    console.error("Upload error:", error);
+    res.status(500).json({ error: "Upload failed ❌" });
+  }
 });
 
 // Get images (newest first)
@@ -82,54 +105,6 @@ app.get("/api/images", async (req, res) => {
   }
 });
 
-// Upload multiple images, one shared comment
-// Expecting field name: "images" (multiple files) + "comments" (string)
-app.post("/api/upload", upload.array("images", 12), async (req, res) => {
-  try {
-    if (!req.files || req.files.length === 0) {
-      return res.status(400).json({ success: false, message: "No files uploaded" });
-    }
-
-    const comment = req.body.comments || "";
-
-    const saved = [];
-    for (const file of req.files) {
-  console.log("Cloudinary upload file object:", file); // 🔍 Debug
-
-  const imageUrl = file.path || file.secure_url || file.url;
-  if (!imageUrl) {
-    throw new Error("No Cloudinary URL found in upload response");
-  }
-
-  const doc = new Image({ url: imageUrl, comments: comment });
-  await doc.save();
-  saved.push(doc);
-       }
-
-    res.json({
-      success: true,
-      message: `${saved.length} image(s) uploaded successfully`,
-      images: saved
-    });
-  } catch (error) {
-    console.error("Upload error:", error);
-    res.status(500).json({
-      success: false,
-      message: error.message || "Upload failed"
-    });
-  }
-});
-
-// Return JSON for unknown /api routes (prevents HTML DOCTYPE leaks)
-app.use("/api", (req, res) => {
-  res.status(404).json({ success: false, message: "API route not found" });
-});
-
-// Fallback (non-API): don’t serve HTML here (frontend is separate)
-// Always respond JSON to avoid "<!DOCTYPE" in consumers
-app.use((req, res) => {
-  res.status(404).json({ success: false, message: "Not found" });
-});
 
 // Global error handler – always return JSON
 app.use((err, req, res, next) => {
