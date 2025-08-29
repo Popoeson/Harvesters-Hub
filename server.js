@@ -114,6 +114,21 @@ app.get("/api/uploads", async (req, res) => {
   }
 });
 
+// Like a post
+app.post("/uploads/:id/like", async (req, res) => {
+  try {
+    const upload = await Upload.findById(req.params.id);
+    if (!upload) return res.status(404).json({ error: "Not found" });
+
+    upload.likes = (upload.likes || 0) + 1;
+    await upload.save();
+
+    res.json({ likes: upload.likes });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Global error handler – always return JSON
 app.use((err, req, res, next) => {
   console.error("Unhandled server error:", err);
