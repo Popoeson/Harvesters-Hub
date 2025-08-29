@@ -135,11 +135,11 @@
 
       // Map backend data into frontend format
       const uploads = json.data.map(u => ({
-        _id: u.asset_id, // use asset_id as unique id
-        fileUrl: u.secure_url,
-        fileType: u.resource_type,
-        likes: u.likes || 0, // ✅ use backend likes if available
-        liked: false          // track whether current user has liked
+        _id: u._id,                // ✅ use MongoDB _id (important!)
+        fileUrl: u.url || u.secure_url,
+        fileType: u.resource_type || "image",
+        likes: u.likes || 0,
+        liked: isPostLiked(u._id)  // ✅ check localStorage on load
       }));
 
       renderPosts(uploads);
@@ -222,23 +222,62 @@
 
   async function handleLikeToggle(upload, icon, likesCountEl) {
     try {
-      const route = upload.liked ? "dislike" : "like";
-      const res = await fetch(`${API_URL}/uploads/${upload._id}/${route}`, {
-        method: "POST"
+      const res = await fetch(`${API_URL}/uploads/${upload._id}/like`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: getDeviceId() }) // ✅ unique device id
       });
+
       const data = await res.json();
+      if (res.ok) {
+        upload.likes = data.likes;
+        upload.liked = !upload.liked;
 
-      upload.likes = data.likes;
-      upload.liked = !upload.liked; // toggle state
+        // Save like state to localStorage
+        if (upload.liked) {
+          saveLike(upload._id);
+        } else {
+          removeLike(upload._id);
+        }
 
-      // Update UI
-      likesCountEl.textContent = `${upload.likes} likes`;
-      icon.className = upload.liked
-        ? "fa-solid fa-heart liked"
-        : "fa-regular fa-heart";
+        // Update UI
+        likesCountEl.textContent = `${upload.likes} likes`;
+        icon.className = upload.liked
+          ? "fa-solid fa-heart liked"
+          : "fa-regular fa-heart";
+      }
     } catch (err) {
       console.error("Error toggling like:", err);
     }
+  }
+
+  // --- LocalStorage Helpers ---
+  function getDeviceId() {
+    let deviceId = localStorage.getItem("deviceId");
+    if (!deviceId) {
+      deviceId = `device-${Math.random().toString(36).substr(2, 9)}`;
+      localStorage.setItem("deviceId", deviceId);
+    }
+    return deviceId;
+  }
+
+  function isPostLiked(postId) {
+    const likedPosts = JSON.parse(localStorage.getItem("likedPosts") || "[]");
+    return likedPosts.includes(postId);
+  }
+
+  function saveLike(postId) {
+    const likedPosts = JSON.parse(localStorage.getItem("likedPosts") || "[]");
+    if (!likedPosts.includes(postId)) {
+      likedPosts.push(postId);
+      localStorage.setItem("likedPosts", JSON.stringify(likedPosts));
+    }
+  }
+
+  function removeLike(postId) {
+    let likedPosts = JSON.parse(localStorage.getItem("likedPosts") || "[]");
+    likedPosts = likedPosts.filter(id => id !== postId);
+    localStorage.setItem("likedPosts", JSON.stringify(likedPosts));
   }
 
   function showMessage(msg) {
