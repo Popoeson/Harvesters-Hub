@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin – Upload Images</title>
+  <title>Admin – Upload Files</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -60,7 +60,7 @@
       display: flex;
       flex-direction: column;
     }
-    .card img {
+    .card img, .card video {
       width: 100%;
       height: 150px;
       object-fit: cover;
@@ -89,9 +89,7 @@
     }
     .msg.error { color: #d9534f; }
     .msg.success { color: #28a745; }
-    
-    
-      /* Navbar */
+
     .navbar {
       display: flex;
       align-items: center;
@@ -99,7 +97,7 @@
       background: #fff;
       padding: 10px 20px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      flex-wrap: wrap; 
+      flex-wrap: wrap;
       gap: 10px;
       margin: 5px;
       border-radius: 5px;
@@ -114,153 +112,136 @@
       font-weight: bold;
       margin: 0;
     }
-    /* ✅ Responsive tweaks */
+
     @media (max-width: 600px) {
       .navbar {
         justify-content: center;
       }
-      .navbar img {
-        order: 1;
-      }
+      .navbar img { order: 1; }
       .navbar h1 {
         order: 2;
         flex: 1 1 100%;
         text-align: center;
         font-size: 16px;
       }
-      .spinner {
-  display: inline-block;
-  width: 18px;
-  height: 18px;
-  border: 2px solid #ccc;      /* Light gray */
-  border-top: 2px solid #0f0;  /* Green highlight */
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-  margin-left: 10px;
-  vertical-align: middle;
-}
+    }
 
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
-      }
+    .spinner {
+      display: none;
+      width: 18px;
+      height: 18px;
+      border: 2px solid #ccc;
+      border-top: 2px solid #0f0;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-left: 10px;
+      vertical-align: middle;
+    }
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body>
-    
-    <!-- Navbar -->
   <div class="navbar">
     <img src="uploads/harvesters.png" alt="Harvesters Logo">
     <h1>Welcome To The Harvesters Hub 😊</h1>
-    
   </div>
+
   <div class="container">
-    <h1>📸 Upload Images</h1>
+    <h1>📸 Upload Files</h1>
 
     <div class="controls">
-      <input id="fileInput" type="file" accept="image/*" multiple />
+      <input id="fileInput" type="file" accept="image/*,video/*" multiple />
       <textarea id="commentInput" placeholder="Comments ✍️"></textarea>
     </div>
 
     <div id="preview" class="preview-grid"></div>
 
     <button id="uploadBtn" class="btn">Upload</button>
+    <div class="spinner" id="spinner"></div>
     <div id="message" class="msg"></div>
   </div>
 
   <script>
-  const fileInput = document.getElementById("fileInput");
-  const commentInput = document.getElementById("commentInput");
-  const preview = document.getElementById("preview");
-  const uploadBtn = document.getElementById("uploadBtn");
-  const message = document.getElementById("message");
+    const fileInput = document.getElementById("fileInput");
+    const commentInput = document.getElementById("commentInput");
+    const preview = document.getElementById("preview");
+    const uploadBtn = document.getElementById("uploadBtn");
+    const message = document.getElementById("message");
+    const spinner = document.getElementById("spinner");
 
-  let files = [];
+    let files = [];
 
-  // Create spinner element (hidden by default)
-  const spinner = document.createElement("span");
-  spinner.className = "spinner";
-  spinner.style.display = "none";
-  spinner.innerHTML = " ⏳ Uploading...";
-  uploadBtn.parentNode.insertBefore(spinner, uploadBtn.nextSibling);
-
-  // Preview files when chosen
-  fileInput.addEventListener("change", () => {
-    files = Array.from(fileInput.files);
-    preview.innerHTML = "";
-
-    files.forEach(file => {
-      const reader = new FileReader();
-      reader.onload = e => {
-        const card = document.createElement("div");
-        card.className = "card";
-        card.innerHTML = `<img src="${e.target.result}" alt="preview">`;
-        preview.appendChild(card);
-      };
-      reader.readAsDataURL(file);
-    });
-  });
-
-  // Upload handler
-  uploadBtn.addEventListener("click", async () => {
-    message.textContent = "";
-    message.className = "msg";
-
-    if (files.length === 0) {
-      message.textContent = "Please select at least one image.";
-      message.classList.add("error");
-      return;
-    }
-
-    const comments = commentInput.value.trim();
-    uploadBtn.disabled = true;
-    spinner.style.display = "inline"; // show spinner
-
-    try {
-      const formData = new FormData();
-      files.forEach(f => formData.append("images", f));
-      formData.append("comments", comments);
-
-      const res = await fetch("https://harvesters-hub-fbgo.onrender.com/api/upload", {
-        method: "POST",
-        body: formData
-      });
-
-      // Clone response so we can try JSON first, fallback to text
-      let data;
-      try {
-        data = await res.clone().json();
-      } catch {
-        const text = await res.text();
-        data = { success: res.ok, message: text };
-      }
-
-      // Log full raw response for debugging
-      console.log("Raw server response:", data);
-
-      if (!res.ok || !data.success) {
-        throw new Error(data.message || `Upload failed with status ${res.status}`);
-      }
-
-      message.textContent = data.message || "Uploaded successfully!";
-      message.classList.add("success");
-
-      // Reset UI
-      fileInput.value = "";
-      commentInput.value = "";
+    fileInput.addEventListener("change", () => {
+      files = Array.from(fileInput.files);
       preview.innerHTML = "";
-      files = [];
-    } catch (err) {
-      console.error("Upload error:", err);
-      message.textContent = "Error: " + err.message;
-      message.classList.add("error");
-    } finally {
-      uploadBtn.disabled = false;
-      spinner.style.display = "none"; // hide spinner
-    }
-  });
-</script>
 
+      files.forEach(file => {
+        const card = document.createElement("div");
+        card.classList.add("card");
 
+        if (file.type.startsWith("image/")) {
+          const img = document.createElement("img");
+          img.src = URL.createObjectURL(file);
+          card.appendChild(img);
+        } else if (file.type.startsWith("video/")) {
+          const video = document.createElement("video");
+          video.src = URL.createObjectURL(file);
+          video.controls = true;
+          card.appendChild(video);
+        }
+
+        preview.appendChild(card);
+      });
+    });
+
+    uploadBtn.addEventListener("click", async () => {
+      message.textContent = "";
+      message.className = "msg";
+
+      if (files.length === 0) {
+        message.textContent = "Please select at least one file.";
+        message.classList.add("error");
+        return;
+      }
+
+      const comment = commentInput.value.trim();
+      uploadBtn.disabled = true;
+      spinner.style.display = "inline-block";
+
+      const formData = new FormData();
+      files.forEach(file => formData.append("files", file));
+      formData.append("comment", comment);
+
+      try {
+        const res = await fetch("https://harvesters-hub-fbgo.onrender.com/api/upload", {
+          method: "POST",
+          body: formData
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          message.textContent = "✅ Upload successful!";
+          message.classList.add("success");
+          preview.innerHTML = "";
+          fileInput.value = "";
+          commentInput.value = "";
+          files = [];
+        } else {
+          message.textContent = data.error || "❌ Upload failed.";
+          message.classList.add("error");
+        }
+      } catch (err) {
+        message.textContent = "Server error. Try again.";
+        message.classList.add("error");
+      } finally {
+        uploadBtn.disabled = false;
+        spinner.style.display = "none";
+      }
+    });
+  </script>
 </body>
 </html>
