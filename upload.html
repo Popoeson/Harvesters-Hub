@@ -128,6 +128,22 @@
         text-align: center;
         font-size: 16px;
       }
+      .spinner {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #ccc;      /* Light gray */
+  border-top: 2px solid #0f0;  /* Green highlight */
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-left: 10px;
+  vertical-align: middle;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+      }
   </style>
 </head>
 <body>
@@ -143,7 +159,7 @@
 
     <div class="controls">
       <input id="fileInput" type="file" accept="image/*" multiple />
-      <textarea id="commentInput" placeholder="Comments"></textarea>
+      <textarea id="commentInput" placeholder="Comments ✍️"></textarea>
     </div>
 
     <div id="preview" class="preview-grid"></div>
@@ -160,6 +176,13 @@
   const message = document.getElementById("message");
 
   let files = [];
+
+  // Create spinner element (hidden by default)
+  const spinner = document.createElement("span");
+  spinner.className = "spinner";
+  spinner.style.display = "none";
+  spinner.innerHTML = " ⏳ Uploading...";
+  uploadBtn.parentNode.insertBefore(spinner, uploadBtn.nextSibling);
 
   // Preview files when chosen
   fileInput.addEventListener("change", () => {
@@ -191,6 +214,7 @@
 
     const comments = commentInput.value.trim();
     uploadBtn.disabled = true;
+    spinner.style.display = "inline"; // show spinner
 
     try {
       const formData = new FormData();
@@ -202,14 +226,17 @@
         body: formData
       });
 
-      // Try to parse JSON first, fallback to text
+      // Clone response so we can try JSON first, fallback to text
       let data;
       try {
-        data = await res.json();
+        data = await res.clone().json();
       } catch {
         const text = await res.text();
         data = { success: res.ok, message: text };
       }
+
+      // Log full raw response for debugging
+      console.log("Raw server response:", data);
 
       if (!res.ok || !data.success) {
         throw new Error(data.message || `Upload failed with status ${res.status}`);
@@ -229,8 +256,11 @@
       message.classList.add("error");
     } finally {
       uploadBtn.disabled = false;
+      spinner.style.display = "none"; // hide spinner
     }
   });
-  </script>
+</script>
+
+
 </body>
 </html>
