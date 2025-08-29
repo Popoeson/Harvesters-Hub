@@ -78,15 +78,20 @@ app.post("/api/upload", upload.array("files"), async (req, res) => {
   try {
     const comment = req.body.comment || "";
 
-    const uploadedFiles = req.files.map(file => ({
-      url: file.path,        // Cloudinary URL
-      type: file.mimetype,   // image/jpeg, video/mp4, etc.
-    }));
+    // Save each file as a new document in MongoDB
+    const savedDocs = await Promise.all(
+      req.files.map(file => {
+        const newImage = new Image({
+          url: file.path,         // Cloudinary URL
+          comments: comment,      // One comment for all
+        });
+        return newImage.save();
+      })
+    );
 
     res.json({
-      message: "Files uploaded successfully ✅",
-      comment,
-      files: uploadedFiles,
+      message: "Files uploaded and saved successfully ✅",
+      files: savedDocs,   // return the saved DB docs
     });
   } catch (error) {
     console.error("Upload error:", error);
