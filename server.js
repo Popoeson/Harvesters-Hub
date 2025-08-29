@@ -99,17 +99,20 @@ app.post("/api/upload", upload.array("files"), async (req, res) => {
   }
 });
 
-// Get images (newest first)
-app.get("/api/images", async (req, res) => {
+// Get uploads (newest first)
+app.get("/api/uploads", async (req, res) => {
   try {
-    const images = await Image.find().sort({ createdAt: -1 });
-    res.json({ success: true, images });
+    const { resources } = await cloudinary.api.resources({
+      type: "upload",
+      max_results: 20, // adjust as needed
+    });
+
+    res.json({ success: true, data: resources });
   } catch (error) {
-    console.error("Fetch images error:", error);
-    res.status(500).json({ success: false, message: "Failed to fetch images" });
+    console.error("Error fetching uploads:", error);
+    res.status(500).json({ success: false, message: "Failed to fetch uploads" });
   }
 });
-
 
 // Global error handler – always return JSON
 app.use((err, req, res, next) => {
