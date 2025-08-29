@@ -58,6 +58,8 @@ const ImageSchema = new mongoose.Schema(
   {
     url: { type: String, required: true },
     comments: { type: String, default: "" },
+    likes: { type: Number, default: 0 },  // ✅ added this
+  //  likedBy: [{ type: String }],          // ✅ optional, store userIds if needed
     dateUploaded: { type: Date, default: Date.now }
   },
   { timestamps: true }
@@ -114,15 +116,25 @@ app.get("/api/uploads", async (req, res) => {
   }
 });
 
-// Like a post
+// Toggle Like (Like or Unlike)
 app.post("/uploads/:id/like", async (req, res) => {
   try {
+    const { userId } = req.body; // send userId from frontend
     const upload = await Upload.findById(req.params.id);
+
     if (!upload) return res.status(404).json({ error: "Not found" });
 
-    upload.likes = (upload.likes || 0) + 1;
-    await upload.save();
+    if (upload.likedBy.includes(userId)) {
+      // Already liked → Unlike
+      upload.likes = Math.max(0, upload.likes - 1); // prevent going negative
+      upload.likedBy = upload.likedBy.filter(id => id !== userId);
+    } else {
+      // Not liked → Like
+      upload.likes += 1;
+      upload.likedBy.push(userId);
+    }
 
+    await upload.save();
     res.json({ likes: upload.likes });
   } catch (err) {
     res.status(500).json({ error: err.message });
