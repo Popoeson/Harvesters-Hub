@@ -149,11 +149,6 @@ app.get("/api/uploads", async (req, res) => {
   }
 });
 
-app.post("/api/:id/like", async (req, res) => {
-  console.log("Like request for ID:", req.params.id, "from device:", req.body.deviceId);
-  ...
-});
-
 // Global error handler – always return JSON
 app.use((err, req, res, next) => {
   console.error("Unhandled server error:", err);
