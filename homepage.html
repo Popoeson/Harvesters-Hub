@@ -112,18 +112,17 @@
 </head>
 <body>
   <header>
-      <div class="navbar">
-    <img src="uploads/harvesters.png" alt="Harvesters Logo">
-    <h1>Harvesters Hub 😊</h1>
-      </div>
-    
+    <div class="navbar">
+      <img src="uploads/harvesters.png" alt="Harvesters Logo">
+      <h1>Harvesters Hub 😊</h1>
+    </div>
   </header>
 
   <div id="feed"></div>
 
   <div class="message" id="messageBox"></div>
 
-    <script>
+  <script>
   const API_URL = "https://harvesters-hub-fbgo.onrender.com";
 
   async function fetchUploads() {
@@ -133,13 +132,12 @@
 
       if (!json.success) throw new Error("Failed to fetch uploads");
 
-      // Map backend data into frontend format
       const uploads = json.data.map(u => ({
-        _id: u._id,                // ✅ use MongoDB _id (important!)
+        _id: u._id,
         fileUrl: u.url || u.secure_url,
         fileType: u.resource_type || "image",
         likes: u.likes || 0,
-        liked: isPostLiked(u._id)  // ✅ check localStorage on load
+        liked: isPostLiked(u._id)
       }));
 
       renderPosts(uploads);
@@ -166,7 +164,6 @@
         mediaEl.src = upload.fileUrl;
       }
 
-      // actions
       const actions = document.createElement("div");
       actions.className = "actions";
 
@@ -189,7 +186,6 @@
       likesCount.className = "likes";
       likesCount.textContent = `${upload.likes || 0} likes`;
 
-      // Like/Unlike toggle
       likeIcon.addEventListener("click", () =>
         handleLikeToggle(upload, likeIcon, likesCount)
       );
@@ -197,13 +193,11 @@
         handleLikeToggle(upload, likeIcon, likesCount)
       );
 
-      // Share event
       shareIcon.addEventListener("click", () => {
         navigator.clipboard.writeText(`${window.location.origin}/post/${upload._id}`);
         showMessage("Post link copied to clipboard");
       });
 
-      // Download event
       downloadIcon.addEventListener("click", () => {
         if (confirm("Do you want to download this file?")) {
           const a = document.createElement("a");
@@ -221,35 +215,37 @@
   }
 
   async function handleLikeToggle(upload, icon, likesCountEl) {
-    try {
-      const res = await fetch(`${API_URL}/uploads/${upload._id}/like`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: getDeviceId() }) // ✅ unique device id
-      });
+  try {
+    const res = await fetch(`${API_URL}/api/${upload._id}/like`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ deviceId: getDeviceId() }) // ✅ FIXED
+    });
 
-      const data = await res.json();
-      if (res.ok) {
-        upload.likes = data.likes;
-        upload.liked = !upload.liked;
+    const data = await res.json();
+    if (res.ok) {
+      upload.likes = data.likes;
+      upload.liked = !upload.liked;
 
-        // Save like state to localStorage
-        if (upload.liked) {
-          saveLike(upload._id);
-        } else {
-          removeLike(upload._id);
-        }
-
-        // Update UI
-        likesCountEl.textContent = `${upload.likes} likes`;
-        icon.className = upload.liked
-          ? "fa-solid fa-heart liked"
-          : "fa-regular fa-heart";
+      // Save like state to localStorage
+      if (upload.liked) {
+        saveLike(upload._id);
+      } else {
+        removeLike(upload._id);
       }
-    } catch (err) {
-      console.error("Error toggling like:", err);
+
+      // Update UI
+      likesCountEl.textContent = `${upload.likes} likes`;
+      icon.className = upload.liked
+        ? "fa-solid fa-heart liked"
+        : "fa-regular fa-heart";
+    } else {
+      console.error("Server responded with error:", data);
     }
+  } catch (err) {
+    console.error("Error toggling like:", err);
   }
+}
 
   // --- LocalStorage Helpers ---
   function getDeviceId() {
@@ -289,8 +285,7 @@
     }, 2000);
   }
 
-  // fetch uploads on load
   fetchUploads();
-    </script>
+  </script>
 </body>
-</html>
+  </html>
