@@ -117,7 +117,7 @@ app.get("/api/uploads", async (req, res) => {
 });
 
 // Toggle Like (Like or Unlike) - works even without accounts
-app.post("/:id/like", async (req, res) => {
+  app.post("/api/:id/like", async (req, res) => {
   try {
     const { deviceId } = req.body; 
     const image = await Image.findById(req.params.id); // use Image model
@@ -149,6 +149,11 @@ app.post("/:id/like", async (req, res) => {
   }
 });
 
+app.post("/api/:id/like", async (req, res) => {
+  console.log("Like request for ID:", req.params.id, "from device:", req.body.deviceId);
+  ...
+});
+
 // Global error handler – always return JSON
 app.use((err, req, res, next) => {
   console.error("Unhandled server error:", err);
@@ -160,4 +165,4 @@ app.use((err, req, res, next) => {
 
 // ---------- Start ----------
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => console.log(`🚀 Backend listening on port ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Backend listening on port ${PORT}`
