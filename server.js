@@ -117,28 +117,35 @@ app.get("/api/uploads", async (req, res) => {
 });
 
 // Toggle Like (Like or Unlike) - works even without accounts
-app.post("/uploads/:id/like", async (req, res) => {
+app.post("/:id/like", async (req, res) => {
   try {
-    const { deviceId } = req.body; // frontend will send a unique device/browser id
-    const upload = await Upload.findById(req.params.id);
+    const { deviceId } = req.body; 
+    const image = await Image.findById(req.params.id); // use Image model
 
-    if (!upload) return res.status(404).json({ error: "Not found" });
-
-    // If already liked by this device → Unlike
-    if (upload.likedBy.includes(deviceId)) {
-      upload.likes = Math.max(0, upload.likes - 1); // prevent negative
-      upload.likedBy = upload.likedBy.filter(id => id !== deviceId);
-    } else {
-      // If not liked yet → Like
-      upload.likes += 1;
-      upload.likedBy.push(deviceId);
+    if (!image) {
+      return res.status(404).json({ error: "Image not found" });
     }
 
-    await upload.save();
-    res.json({ likes: upload.likes });
+    // If already liked, remove like (unlike)
+    if (image.likedBy.includes(deviceId)) {
+      image.likes = Math.max(0, image.likes - 1);
+      image.likedBy = image.likedBy.filter(id => id !== deviceId);
+    } 
+    // Otherwise, add like
+    else {
+      image.likes += 1;
+      image.likedBy.push(deviceId);
+    }
+
+    await image.save();
+
+    res.json({
+      likes: image.likes,
+      likedBy: image.likedBy
+    });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
+    console.error("Like/unlike error:", err);
+    res.status(500).json({ error: "Server error" });
   }
 });
 
