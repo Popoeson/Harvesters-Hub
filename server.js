@@ -160,4 +160,4 @@ app.use((err, req, res, next) => {
 
 // ---------- Start ----------
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => console.log(`🚀 Backend listening on port ${PORT}`
+app.listen(PORT, () => console.log(`🚀 Backend listening on port ${PORT}`));
