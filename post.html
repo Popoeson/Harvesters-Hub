@@ -3,154 +3,96 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>View Post</title>
+  <title>Post View</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
       background: #111;
       color: #fff;
+      font-family: Arial, sans-serif;
       margin: 0;
-      padding: 0;
-      text-align: center;
-    }
-    header {
-      background: #222;
-      padding: 15px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    header button {
-      background: #28a745;
-      border: none;
-      padding: 8px 15px;
-      border-radius: 5px;
-      color: white;
-      font-size: 14px;
-      cursor: pointer;
-    }
-    .post-container {
-      max-width: 600px;
-      margin: 30px auto;
-      background: #222;
       padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.5);
     }
-    .post-container img {
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: #1e1e1e;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0px 4px 12px rgba(0,0,0,0.5);
+    }
+    img {
       width: 100%;
-      border-radius: 10px;
+      border-radius: 12px;
     }
-    .caption {
+    .meta {
       margin-top: 10px;
-      font-size: 16px;
-      color: #ccc;
+      font-size: 0.9rem;
+      color: #aaa;
     }
-    .actions {
-      display: flex;
-      justify-content: space-around;
-      margin-top: 15px;
+    .comments {
+      margin-top: 20px;
     }
-    .actions button {
-      background: none;
-      border: none;
-      color: white;
-      font-size: 20px;
-      cursor: pointer;
-    }
-    .actions button:hover {
-      color: #28a745;
-    }
-    #message {
-      margin-top: 10px;
-      font-size: 14px;
-      color: #28a745;
-      display: none;
+    .comment {
+      background: #2a2a2a;
+      padding: 10px;
+      margin-bottom: 8px;
+      border-radius: 8px;
     }
   </style>
 </head>
 <body>
-  <header>
-    <h2>Post View</h2>
-    <button onclick="window.location.href='homepage.html'">🏠 Home</button>
-  </header>
-
-  <div class="post-container">
-    <img id="postImage" src="" alt="Post Image">
-    <div class="caption" id="postCaption"></div>
-
-    <div class="actions">
-      <button onclick="likePost()">❤️</button>
-      <button onclick="sharePost()">🔗</button>
-      <button onclick="downloadPost()">⬇️</button>
+  <div class="container">
+    <h2 id="post-title">Loading...</h2>
+    <img id="post-image" alt="Post Image">
+    <p class="meta" id="post-date"></p>
+    <div class="comments">
+      <h3>Comments</h3>
+      <div id="comment-list"></div>
     </div>
-    <div id="message"></div>
   </div>
 
   <script>
-  // Extract postId from path (works with /post/:id)
-  const pathParts = window.location.pathname.split("/");
-  const postId = pathParts[pathParts.length - 1]; 
+    // ✅ 1. Extract post ID from URL
+    const urlParts = window.location.pathname.split("/");
+    const postId = urlParts[urlParts.length - 1];
 
-  // Load post from backend
-  async function loadPost() {
-    try {
-      const res = await fetch(`https://harvesters-hub.vercel.app/api/images/${postId}`);
-      if (!res.ok) throw new Error("Post not found");
-      const post = await res.json();
+    // ✅ 2. Fetch post data
+    async function loadPost() {
+      try {
+        const res = await fetch(`/api/images/${postId}`);
+        if (!res.ok) {
+          document.querySelector(".container").innerHTML = "<p>⚠️ Post not found.</p>";
+          return;
+        }
+        const data = await res.json();
 
-      document.getElementById("postImage").src = post.url;
-      document.getElementById("postCaption").textContent = post.comments || "No caption";
-    } catch (err) {
-      console.error("Error loading post:", err);
-      document.getElementById("postCaption").textContent = "⚠️ Post not found";
+        // ✅ 3. Render post details
+        document.getElementById("post-title").innerText = `Post ID: ${data.id}`;
+        document.getElementById("post-image").src = data.url;
+        document.getElementById("post-date").innerText = 
+          `Uploaded on: ${new Date(data.createdAt).toLocaleString()}`;
+
+        // ✅ 4. Render comments
+        const commentList = document.getElementById("comment-list");
+        commentList.innerHTML = "";
+        if (data.comments && data.comments.length > 0) {
+          data.comments.forEach(c => {
+            const div = document.createElement("div");
+            div.classList.add("comment");
+            div.innerText = c;
+            commentList.appendChild(div);
+          });
+        } else {
+          commentList.innerHTML = "<p>No comments yet.</p>";
+        }
+
+      } catch (err) {
+        console.error("❌ Error loading post:", err);
+        document.querySelector(".container").innerHTML = "<p>⚠️ Error loading post.</p>";
+      }
     }
-  }
 
-  // Like post
-  async function likePost() {
-    try {
-      await fetch(`https://harvesters-hub.vercel.app/api/images/${postId}/like`, { method: "POST" });
-      showMessage("You liked this post ❤️");
-    } catch {
-      showMessage("Error liking post");
-    }
-  }
-
-  // Share post (copy link)
-  function sharePost() {
-    const link = `${window.location.origin}/post/${postId}`;
-    navigator.clipboard.writeText(link).then(() => {
-      showMessage("Post link copied to clipboard ✅");
-    });
-  }
-
-  // Download image
-  async function downloadPost() {
-    const imageUrl = document.getElementById("postImage").src;
-    const fileName = `post-${postId}.jpg`;
-
-    const response = await fetch(imageUrl);
-    const blob = await response.blob();
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = fileName;
-    link.click();
-    URL.revokeObjectURL(link.href);
-
-    showMessage("Download started ✅");
-  }
-
-  // Show temporary message
-  function showMessage(msg) {
-    const messageEl = document.getElementById("message");
-    messageEl.textContent = msg;
-    messageEl.style.display = "block";
-    setTimeout(() => (messageEl.style.display = "none"), 2000);
-  }
-
-  // Load post on page load
-  loadPost();
-</script>
+    loadPost();
+  </script>
 </body>
 </html>
