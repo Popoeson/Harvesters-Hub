@@ -118,23 +118,24 @@ app.get("/api/uploads", async (req, res) => {
   }
 });
 
-// Toggle Like (Like or Unlike) - works even without accounts
-  app.post("/api/:id/like", async (req, res) => {
+// Like/Unlike toggle
+app.post("/api/:id/like", async (req, res) => {
   try {
-    const { deviceId } = req.body; 
-    const image = await Image.findById(req.params.id); // use Image model
+    const { id } = req.params;
+    const { deviceId } = req.body;
 
-    if (!image) {
-      return res.status(404).json({ error: "Image not found" });
-    }
+    const image = await Image.findById(id);
+    if (!image) return res.status(404).json({ error: "Image not found" });
 
-    // If already liked, remove like (unlike)
-    if (image.likedBy.includes(deviceId)) {
+    // Check if device already liked
+    const alreadyLiked = image.likedBy.includes(deviceId);
+
+    if (alreadyLiked) {
+      // Unlike
       image.likes = Math.max(0, image.likes - 1);
-      image.likedBy = image.likedBy.filter(id => id !== deviceId);
-    } 
-    // Otherwise, add like
-    else {
+      image.likedBy = image.likedBy.filter(d => d !== deviceId);
+    } else {
+      // Like
       image.likes += 1;
       image.likedBy.push(deviceId);
     }
@@ -142,11 +143,12 @@ app.get("/api/uploads", async (req, res) => {
     await image.save();
 
     res.json({
+      success: true,
       likes: image.likes,
-      likedBy: image.likedBy
+      liked: !alreadyLiked,
     });
-  } catch (err) {
-    console.error("Like/unlike error:", err);
+  } catch (error) {
+    console.error("Like toggle error:", error);
     res.status(500).json({ error: "Server error" });
   }
 });
