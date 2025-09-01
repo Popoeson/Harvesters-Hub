@@ -3,151 +3,70 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>View Post</title>
+  <title>Single Post</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #111;
-      color: #fff;
-      margin: 0;
-      padding: 0;
+    body { 
+      font-family: Arial, sans-serif; 
+      background: #f9f9f9; 
       text-align: center;
-    }
-    header {
-      background: #222;
-      padding: 15px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    header button {
-      background: #28a745;
-      border: none;
-      padding: 8px 15px;
-      border-radius: 5px;
-      color: white;
-      font-size: 14px;
-      cursor: pointer;
-    }
-    .post-container {
+      }
+    .container { 
       max-width: 600px;
-      margin: 30px auto;
-      background: #222;
+      margin: 40px auto;
+      background: #fff; 
       padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+      border-radius: 10px; 
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
     }
-    .post-container img {
-      width: 100%;
+    img { 
+      max-width: 100%; 
       border-radius: 10px;
+      margin-bottom: 10px;
+    }
+    .likes { 
+      margin-top: 10px; 
+      font-weight: bold; 
+      color: #e63946;
     }
     .caption {
-      margin-top: 10px;
-      font-size: 16px;
-      color: #ccc;
+      margin: 10px 0;
     }
-    .actions {
-      display: flex;
-      justify-content: space-around;
-      margin-top: 15px;
-    }
-    .actions button {
-      background: none;
-      border: none;
+    .back-btn {
+      display: inline-block; 
+      margin-bottom: 20px; 
+      padding: 10px 15px;
+      background: #007bff;
       color: white;
-      font-size: 20px;
-      cursor: pointer;
-    }
-    .actions button:hover {
-      color: #28a745;
-    }
-    #message {
-      margin-top: 10px;
-      font-size: 14px;
-      color: #28a745;
-      display: none;
+      text-decoration: none; 
+      border-radius: 6px;
     }
   </style>
 </head>
 <body>
-  <header>
-    <h2>Post View</h2>
-    <button onclick="window.location.href='homepage.html'">🏠 Home</button>
-  </header>
-
-  <div class="post-container">
-    <img id="postImage" src="" alt="Post Image">
-    <div class="caption" id="postCaption"></div>
-
-    <div class="actions">
-      <button onclick="likePost()">❤️</button>
-      <button onclick="sharePost()">🔗</button>
-      <button onclick="downloadPost()">⬇️</button>
-    </div>
-    <div id="message"></div>
+  <div class="container">
+    <a href="homepage.html" class="back-btn">🏠 Back to Homepage</a>
+    <div id="post"></div>
   </div>
 
   <script>
-    // Fetch postId from URL (example: post.html?id=12345)
-    const urlParams = new URLSearchParams(window.location.search);
-    const postId = urlParams.get("id");
-
-    // Load post from backend
     async function loadPost() {
-      try {
-        const res = await fetch(`https://harvesters-hub.vercel.app/api/images/${postId}`);
-        const post = await res.json();
+      const postId = window.location.pathname.split("/").pop(); 
+      const res = await fetch(`/api/images/${postId}`);
+      const data = await res.json();
 
-        document.getElementById("postImage").src = post.url;
-        document.getElementById("postCaption").textContent = post.comments || "No caption";
-      } catch (err) {
-        console.error("Error loading post:", err);
+      if (data.message) {
+        document.getElementById("post").innerHTML = `<p>${data.message}</p>`;
+        return;
       }
+
+      let imagesHTML = data.images.map(img => `<img src="${img}" alt="Post image">`).join("");
+      document.getElementById("post").innerHTML = `
+        ${imagesHTML}
+        <p class="caption">${data.caption}</p>
+        <p class="likes">❤️ ${data.likes} likes</p>
+      `;
     }
 
-    // Like post
-    async function likePost() {
-      try {
-        await fetch(`https://harvesters-hub.vercel.app/api/images/${postId}/like`, { method: "POST" });
-        showMessage("You liked this post ❤️");
-      } catch {
-        showMessage("Error liking post");
-      }
-    }
-
-    // Share post (copy link)
-    function sharePost() {
-      const link = `${window.location.origin}/post.html?id=${postId}`;
-      navigator.clipboard.writeText(link).then(() => {
-        showMessage("Post link copied to clipboard ✅");
-      });
-    }
-
-    // Download image
-    async function downloadPost() {
-      const imageUrl = document.getElementById("postImage").src;
-      const fileName = `post-${postId}.jpg`;
-
-      const response = await fetch(imageUrl);
-      const blob = await response.blob();
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = fileName;
-      link.click();
-      URL.revokeObjectURL(link.href);
-
-      showMessage("Download started ✅");
-    }
-
-    // Show temporary message
-    function showMessage(msg) {
-      const messageEl = document.getElementById("message");
-      messageEl.textContent = msg;
-      messageEl.style.display = "block";
-      setTimeout(() => (messageEl.style.display = "none"), 2000);
-    }
-
-    // Load post on page load
     loadPost();
   </script>
 </body>
