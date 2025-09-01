@@ -55,32 +55,29 @@
     const postId = pathParts[pathParts.length - 1];
 
     async function fetchPost() {
-      try {
-        // ✅ Fix: match backend route (/api/images/:id)
-        const res = await fetch(`https://harvesters-hub-fbgo.onrender.com/api/images/${postId}`);
-        
-        if (!res.ok) {
-          throw new Error("Post not found");
-        }
+  const pathParts = window.location.pathname.split("/");
+  const postId = pathParts[pathParts.length - 1]; // get the last part of the path
+  console.log("📌 Extracted postId:", postId);
 
-        const post = await res.json();
-
-        const contentDiv = document.getElementById("post-content");
-
-        // ✅ Render single image & comment from schema
-        contentDiv.innerHTML = `
-          <div class="image">
-            <img src="${post.url}" alt="Post image">
-          </div>
-          <div class="comment">${post.comments || "No comment"}</div>
-        `;
-      } catch (err) {
-        document.getElementById("post-content").innerHTML = `<p class="error">⚠️ Post not found</p>`;
-        console.error(err);
-      }
+  try {
+    const res = await fetch(`https://harvesters-hub-fbgo.onrender.com/api/images/${postId}`);
+    if (!res.ok) {
+      throw new Error("Post not found");
     }
+    const post = await res.json();
+    console.log("✅ Post fetched:", post);
 
-    fetchPost();
+    document.getElementById("postImage").src = post.url;
+    document.getElementById("postComments").innerText = post.comments;
+    document.getElementById("postLikes").innerText = `${post.likes} likes`;
+
+  } catch (error) {
+    console.error("❌ Error fetching post:", error);
+    document.getElementById("postContainer").innerHTML = `<p>Post not found.</p>`;
+  }
+}
+
+fetchPost();
   </script>
 </body>
 </html>
