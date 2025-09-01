@@ -84,8 +84,10 @@ app.post("/api/upload", upload.array("files"), async (req, res) => {
     const savedDocs = await Promise.all(
       req.files.map(file => {
         const newImage = new Image({
-          url: file.path,         // Cloudinary URL
-          comments: comment,      // One comment for all
+          url: file.path,          // Cloudinary URL
+          comments: comment,       // One comment for all
+          likes: 0,                // ✅ initialize likes
+          likedBy: []              // ✅ initialize empty array
         });
         return newImage.save();
       })
