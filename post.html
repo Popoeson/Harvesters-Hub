@@ -3,96 +3,87 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Post View</title>
+  <title>Post</title>
   <style>
     body {
-      background: #111;
-      color: #fff;
       font-family: Arial, sans-serif;
+      background: #f5f5f5;
       margin: 0;
-      padding: 20px;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
     }
     .container {
-      max-width: 600px;
-      margin: auto;
-      background: #1e1e1e;
-      border-radius: 12px;
+      background: #fff;
       padding: 20px;
-      box-shadow: 0px 4px 12px rgba(0,0,0,0.5);
-    }
-    img {
+      border-radius: 10px;
+      max-width: 600px;
       width: 100%;
-      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
-    .meta {
-      margin-top: 10px;
-      font-size: 0.9rem;
-      color: #aaa;
+    .images {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 15px;
     }
-    .comments {
-      margin-top: 20px;
+    .images img {
+      max-width: 100%;
+      border-radius: 8px;
+      flex: 1 1 calc(50% - 10px);
+      object-fit: cover;
     }
     .comment {
-      background: #2a2a2a;
-      padding: 10px;
-      margin-bottom: 8px;
-      border-radius: 8px;
+      font-size: 1rem;
+      color: #333;
+    }
+    .error {
+      text-align: center;
+      color: red;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2 id="post-title">Loading...</h2>
-    <img id="post-image" alt="Post Image">
-    <p class="meta" id="post-date"></p>
-    <div class="comments">
-      <h3>Comments</h3>
-      <div id="comment-list"></div>
+    <div id="post-content">
+      <p>Loading...</p>
     </div>
   </div>
 
   <script>
-    // ✅ 1. Extract post ID from URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const postId = urlParams.get("id");
+    // ✅ Get post ID from URL
+    const pathParts = window.location.pathname.split("/");
+    const postId = pathParts[pathParts.length - 1];
 
-    // ✅ 2. Fetch post data
-    async function loadPost() {
+    async function fetchPost() {
       try {
-        const res = await fetch(`/api/images/${postId}`);
+        const res = await fetch(`https://harvesters-hub.vercel.app/api/posts/${postId}`);
+        
         if (!res.ok) {
-          document.querySelector(".container").innerHTML = "<p>⚠️ Post not found.</p>";
-          return;
-        }
-        const data = await res.json();
-
-        // ✅ 3. Render post details
-        document.getElementById("post-title").innerText = `Post ID: ${data.id}`;
-        document.getElementById("post-image").src = data.url;
-        document.getElementById("post-date").innerText = 
-          `Uploaded on: ${new Date(data.createdAt).toLocaleString()}`;
-
-        // ✅ 4. Render comments
-        const commentList = document.getElementById("comment-list");
-        commentList.innerHTML = "";
-        if (data.comments && data.comments.length > 0) {
-          data.comments.forEach(c => {
-            const div = document.createElement("div");
-            div.classList.add("comment");
-            div.innerText = c;
-            commentList.appendChild(div);
-          });
-        } else {
-          commentList.innerHTML = "<p>No comments yet.</p>";
+          throw new Error("Post not found");
         }
 
+        const post = await res.json();
+
+        const contentDiv = document.getElementById("post-content");
+
+        // ✅ Render post images & comment
+        contentDiv.innerHTML = `
+          <div class="images">
+            ${post.images.map(img => `<img src="${img}" alt="Post image">`).join("")}
+          </div>
+          <div class="comment">${post.comment}</div>
+        `;
       } catch (err) {
-        console.error("❌ Error loading post:", err);
-        document.querySelector(".container").innerHTML = "<p>⚠️ Error loading post.</p>";
+        document.getElementById("post-content").innerHTML = `<p class="error">⚠️ Post not found</p>`;
+        console.error(err);
       }
     }
 
-    loadPost();
+    fetchPost();
   </script>
 </body>
 </html>
