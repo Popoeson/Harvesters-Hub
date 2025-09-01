@@ -132,9 +132,9 @@
   <div class="message" id="messageBox"></div>
 
   <script>
-  const API_URL = "https://harvesters-hub-fbgo.onrender.com";
+const API_URL = "https://harvesters-hub-fbgo.onrender.com";
 
-  async function fetchUploads() {
+async function fetchUploads() {
   try {
     const res = await fetch(`${API_URL}/api/uploads`);
     const json = await res.json();
@@ -201,6 +201,7 @@ function renderPosts(uploads) {
     likesCount.className = "likes";
     likesCount.textContent = `${upload.likes || 0} likes`;
 
+    // ✅ Like toggle
     likeIcon.addEventListener("click", () =>
       handleLikeToggle(upload, likeIcon, likesCount)
     );
@@ -208,15 +209,35 @@ function renderPosts(uploads) {
       handleLikeToggle(upload, likeIcon, likesCount)
     );
 
+    // ✅ Share: copy unique link
+    shareIcon.addEventListener("click", () => {
+      const postLink = `${window.location.origin}/post/${upload._id}`;
+      navigator.clipboard.writeText(postLink).then(() => {
+        showMessage("Post link copied to clipboard ✅");
+      });
+    });
+
+    // ✅ Download: confirm then save
+    downloadIcon.addEventListener("click", () => {
+      if (confirm("Do you want to download this file?")) {
+        const a = document.createElement("a");
+        a.href = upload.fileUrl;
+        a.download = upload.fileUrl.split("/").pop();
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
+    });
+
     post.appendChild(mediaEl);
     post.appendChild(caption);   // ✅ caption inserted here
     post.appendChild(actions);
     post.appendChild(likesCount);
     feed.appendChild(post);
   });
-    }
+}
 
-  async function handleLikeToggle(upload, icon, likesCountEl) {
+async function handleLikeToggle(upload, icon, likesCountEl) {
   try {
     if (!upload._id) {
       console.error("Missing _id on upload:", upload);
@@ -229,7 +250,6 @@ function renderPosts(uploads) {
       body: JSON.stringify({ deviceId: getDeviceId() })
     });
 
-    // Be defensive: only parse JSON if server actually sent JSON
     const ct = res.headers.get("content-type") || "";
     const data = ct.includes("application/json") ? await res.json() : null;
 
@@ -244,7 +264,6 @@ function renderPosts(uploads) {
     likesCountEl.textContent = `${upload.likes} likes`;
     icon.className = upload.liked ? "fa-solid fa-heart liked" : "fa-regular fa-heart";
 
-    // persist local like state
     if (upload.liked) saveLike(upload._id);
     else removeLike(upload._id);
   } catch (err) {
@@ -252,45 +271,47 @@ function renderPosts(uploads) {
   }
 }
 
-  // --- LocalStorage Helpers ---
-  function getDeviceId() {
-    let deviceId = localStorage.getItem("deviceId");
-    if (!deviceId) {
-      deviceId = `device-${Math.random().toString(36).substr(2, 9)}`;
-      localStorage.setItem("deviceId", deviceId);
-    }
-    return deviceId;
+// --- LocalStorage Helpers ---
+function getDeviceId() {
+  let deviceId = localStorage.getItem("deviceId");
+  if (!deviceId) {
+    deviceId = `device-${Math.random().toString(36).substr(2, 9)}`;
+    localStorage.setItem("deviceId", deviceId);
   }
+  return deviceId;
+}
 
-  function isPostLiked(postId) {
-    const likedPosts = JSON.parse(localStorage.getItem("likedPosts") || "[]");
-    return likedPosts.includes(postId);
-  }
+function isPostLiked(postId) {
+  const likedPosts = JSON.parse(localStorage.getItem("likedPosts") || "[]");
+  return likedPosts.includes(postId);
+}
 
-  function saveLike(postId) {
-    const likedPosts = JSON.parse(localStorage.getItem("likedPosts") || "[]");
-    if (!likedPosts.includes(postId)) {
-      likedPosts.push(postId);
-      localStorage.setItem("likedPosts", JSON.stringify(likedPosts));
-    }
-  }
-
-  function removeLike(postId) {
-    let likedPosts = JSON.parse(localStorage.getItem("likedPosts") || "[]");
-    likedPosts = likedPosts.filter(id => id !== postId);
+function saveLike(postId) {
+  const likedPosts = JSON.parse(localStorage.getItem("likedPosts") || "[]");
+  if (!likedPosts.includes(postId)) {
+    likedPosts.push(postId);
     localStorage.setItem("likedPosts", JSON.stringify(likedPosts));
   }
+}
 
-  function showMessage(msg) {
-    const box = document.getElementById("messageBox");
-    box.textContent = msg;
-    box.style.display = "block";
-    setTimeout(() => {
-      box.style.display = "none";
-    }, 2000);
-  }
+function removeLike(postId) {
+  let likedPosts = JSON.parse(localStorage.getItem("likedPosts") || "[]");
+  likedPosts = likedPosts.filter(id => id !== postId);
+  localStorage.setItem("likedPosts", JSON.stringify(likedPosts));
+}
 
-  fetchUploads();
+function showMessage(msg) {
+  const box = document.getElementById("messageBox");
+  box.textContent = msg;
+  box.style.display = "block";
+  setTimeout(() => {
+    box.style.display = "none";
+  }, 2000);
+}
+
+fetchUploads();
   </script>
+
+  
 </body>
   </html>
