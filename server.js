@@ -103,52 +103,40 @@ app.post("/api/upload", upload.array("files"), async (req, res) => {
   }
 });
 
-// Get uploads (newest first)
+
+// GET: return Mongo docs (not Cloudinary resources)
 app.get("/api/uploads", async (req, res) => {
   try {
-    const { resources } = await cloudinary.api.resources({
-      type: "upload",
-      max_results: 20, // adjust as needed
-    });
-
-    res.json({ success: true, data: resources });
-  } catch (error) {
-    console.error("Error fetching uploads:", error);
+    const images = await Image.find().sort({ createdAt: -1 });
+    res.json({ success: true, data: images });
+  } catch (err) {
+    console.error("Error fetching uploads:", err);
     res.status(500).json({ success: false, message: "Failed to fetch uploads" });
   }
 });
 
-// Like/Unlike toggle
-app.post("/api/:id/like", async (req, res) => {
+// POST: like/unlike by Mongo _id
+app.post("/api/uploads/:id/like", async (req, res) => {
   try {
-    const { id } = req.params;
     const { deviceId } = req.body;
+    if (!deviceId) return res.status(400).json({ error: "deviceId required" });
 
-    const image = await Image.findById(id);
+    const image = await Image.findById(req.params.id);
     if (!image) return res.status(404).json({ error: "Image not found" });
 
-    // Check if device already liked
-    const alreadyLiked = image.likedBy.includes(deviceId);
-
-    if (alreadyLiked) {
-      // Unlike
+    const already = image.likedBy.includes(deviceId);
+    if (already) {
       image.likes = Math.max(0, image.likes - 1);
-      image.likedBy = image.likedBy.filter(d => d !== deviceId);
+      image.likedBy = image.likedBy.filter(id => id !== deviceId);
     } else {
-      // Like
       image.likes += 1;
       image.likedBy.push(deviceId);
     }
 
     await image.save();
-
-    res.json({
-      success: true,
-      likes: image.likes,
-      liked: !alreadyLiked,
-    });
-  } catch (error) {
-    console.error("Like toggle error:", error);
+    res.json({ likes: image.likes, liked: !already });
+  } catch (err) {
+    console.error("Like/unlike error:", err);
     res.status(500).json({ error: "Server error" });
   }
 });
