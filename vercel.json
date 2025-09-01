@@ -1,5 +1,5 @@
 {
   "rewrites": [
-    { "source": "/post/:id", "destination": "/post.html" }
+    { "source": "/post/:id", "destination": "/post.html?id=:id" }
   ]
 }
