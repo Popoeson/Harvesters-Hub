@@ -23,16 +23,12 @@
       width: 100%;
       box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
-    .images {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
+    .image {
       margin-bottom: 15px;
     }
-    .images img {
+    .image img {
       max-width: 100%;
       border-radius: 8px;
-      flex: 1 1 calc(50% - 10px);
       object-fit: cover;
     }
     .comment {
@@ -54,13 +50,14 @@
   </div>
 
   <script>
-    // ✅ Get post ID from URL
+    // ✅ Get post ID from URL (/post/:id)
     const pathParts = window.location.pathname.split("/");
     const postId = pathParts[pathParts.length - 1];
 
     async function fetchPost() {
       try {
-        const res = await fetch(`https://harvesters-hub.vercel.app/api/posts/${postId}`);
+        // ✅ Fix: match backend route (/api/images/:id)
+        const res = await fetch(`https://harvesters-hub-fbgo.onrender.com/api/images/${postId}`);
         
         if (!res.ok) {
           throw new Error("Post not found");
@@ -70,12 +67,12 @@
 
         const contentDiv = document.getElementById("post-content");
 
-        // ✅ Render post images & comment
+        // ✅ Render single image & comment from schema
         contentDiv.innerHTML = `
-          <div class="images">
-            ${post.images.map(img => `<img src="${img}" alt="Post image">`).join("")}
+          <div class="image">
+            <img src="${post.url}" alt="Post image">
           </div>
-          <div class="comment">${post.comment}</div>
+          <div class="comment">${post.comments || "No comment"}</div>
         `;
       } catch (err) {
         document.getElementById("post-content").innerHTML = `<p class="error">⚠️ Post not found</p>`;
