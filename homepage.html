@@ -59,6 +59,15 @@
       font-weight: bold;
     }
 
+    .caption {
+  padding: 10px;
+  font-size: 14px;
+  color: #333;
+  border-top: 1px solid #eee;
+  border-bottom: 1px solid #eee;
+  background: #fafafa;
+    }
+
     .message {
       position: fixed;
       bottom: 20px;
@@ -126,93 +135,86 @@
   const API_URL = "https://harvesters-hub-fbgo.onrender.com";
 
   async function fetchUploads() {
-    try {
-      const res = await fetch(`${API_URL}/api/uploads`);
-      const json = await res.json();
+  try {
+    const res = await fetch(`${API_URL}/api/uploads`);
+    const json = await res.json();
 
-      if (!json.success) throw new Error("Failed to fetch uploads");
+    if (!json.success) throw new Error("Failed to fetch uploads");
 
-      const uploads = json.data.map(u => ({
-        _id: u._id,
-        fileUrl: u.url || u.secure_url,
-        fileType: u.resource_type || "image",
-        likes: u.likes || 0,
-        liked: isPostLiked(u._id)
-      }));
+    const uploads = json.data.map(u => ({
+      _id: u._id,
+      fileUrl: u.url || u.secure_url,
+      fileType: u.resource_type || "image",
+      likes: u.likes || 0,
+      comments: u.comments || "",   // ✅ pull caption
+      liked: isPostLiked(u._id)
+    }));
 
-      renderPosts(uploads);
-    } catch (err) {
-      console.error("Error fetching uploads:", err);
+    renderPosts(uploads);
+  } catch (err) {
+    console.error("Error fetching uploads:", err);
+  }
+}
+
+function renderPosts(uploads) {
+  const feed = document.getElementById("feed");
+  feed.innerHTML = "";
+
+  uploads.forEach(upload => {
+    const post = document.createElement("div");
+    post.className = "post";
+
+    let mediaEl;
+    if (upload.fileType === "video") {
+      mediaEl = document.createElement("video");
+      mediaEl.src = upload.fileUrl;
+      mediaEl.controls = true;
+    } else {
+      mediaEl = document.createElement("img");
+      mediaEl.src = upload.fileUrl;
     }
-  }
 
-  function renderPosts(uploads) {
-    const feed = document.getElementById("feed");
-    feed.innerHTML = "";
+    // ✅ Caption block
+    const caption = document.createElement("div");
+    caption.className = "caption";
+    caption.textContent = upload.comments || "";
 
-    uploads.forEach(upload => {
-      const post = document.createElement("div");
-      post.className = "post";
+    const actions = document.createElement("div");
+    actions.className = "actions";
 
-      let mediaEl;
-      if (upload.fileType === "video") {
-        mediaEl = document.createElement("video");
-        mediaEl.src = upload.fileUrl;
-        mediaEl.controls = true;
-      } else {
-        mediaEl = document.createElement("img");
-        mediaEl.src = upload.fileUrl;
-      }
+    const likeIcon = document.createElement("i");
+    likeIcon.className = upload.liked
+      ? "fa-solid fa-heart liked"
+      : "fa-regular fa-heart";
 
-      const actions = document.createElement("div");
-      actions.className = "actions";
+    const shareIcon = document.createElement("i");
+    shareIcon.className = "fa-solid fa-share";
 
-      const likeIcon = document.createElement("i");
-      likeIcon.className = upload.liked
-        ? "fa-solid fa-heart liked"
-        : "fa-regular fa-heart";
+    const downloadIcon = document.createElement("i");
+    downloadIcon.className = "fa-solid fa-download";
 
-      const shareIcon = document.createElement("i");
-      shareIcon.className = "fa-solid fa-share";
+    actions.appendChild(likeIcon);
+    actions.appendChild(shareIcon);
+    actions.appendChild(downloadIcon);
 
-      const downloadIcon = document.createElement("i");
-      downloadIcon.className = "fa-solid fa-download";
+    const likesCount = document.createElement("div");
+    likesCount.className = "likes";
+    likesCount.textContent = `${upload.likes || 0} likes`;
 
-      actions.appendChild(likeIcon);
-      actions.appendChild(shareIcon);
-      actions.appendChild(downloadIcon);
+    likeIcon.addEventListener("click", () =>
+      handleLikeToggle(upload, likeIcon, likesCount)
+    );
+    mediaEl.addEventListener("dblclick", () =>
+      handleLikeToggle(upload, likeIcon, likesCount)
+    );
 
-      const likesCount = document.createElement("div");
-      likesCount.className = "likes";
-      likesCount.textContent = `${upload.likes || 0} likes`;
-
-      likeIcon.addEventListener("click", () =>
-        handleLikeToggle(upload, likeIcon, likesCount)
-      );
-      mediaEl.addEventListener("dblclick", () =>
-        handleLikeToggle(upload, likeIcon, likesCount)
-      );
-
-      shareIcon.addEventListener("click", () => {
-        navigator.clipboard.writeText(`${window.location.origin}/post/${upload._id}`);
-        showMessage("Post link copied to clipboard");
-      });
-
-      downloadIcon.addEventListener("click", () => {
-        if (confirm("Do you want to download this file?")) {
-          const a = document.createElement("a");
-          a.href = upload.fileUrl;
-          a.download = upload.fileUrl.split("/").pop();
-          a.click();
-        }
-      });
-
-      post.appendChild(mediaEl);
-      post.appendChild(actions);
-      post.appendChild(likesCount);
-      feed.appendChild(post);
-    });
-  }
+    post.appendChild(mediaEl);
+    post.appendChild(caption);   // ✅ caption inserted here
+    post.appendChild(actions);
+    post.appendChild(likesCount);
+    feed.appendChild(post);
+  });
+    }
 
   async function handleLikeToggle(upload, icon, likesCountEl) {
   try {
