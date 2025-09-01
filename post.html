@@ -53,8 +53,8 @@
 
   <script>
     // ✅ 1. Extract post ID from URL
-    const urlParts = window.location.pathname.split("/");
-    const postId = urlParts[urlParts.length - 1];
+    const urlParams = new URLSearchParams(window.location.search);
+    const postId = urlParams.get("id");
 
     // ✅ 2. Fetch post data
     async function loadPost() {
