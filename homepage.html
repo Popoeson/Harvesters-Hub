@@ -216,32 +216,35 @@
 
   async function handleLikeToggle(upload, icon, likesCountEl) {
   try {
-    const res = await fetch(`${API_URL}/api/${upload._id}/like`, {
+    if (!upload._id) {
+      console.error("Missing _id on upload:", upload);
+      return;
+    }
+
+    const res = await fetch(`${API_URL}/api/uploads/${upload._id}/like`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ deviceId: getDeviceId() }) // ✅ FIXED
+      body: JSON.stringify({ deviceId: getDeviceId() })
     });
 
-    const data = await res.json();
-    if (res.ok) {
-      upload.likes = data.likes;
-      upload.liked = !upload.liked;
+    // Be defensive: only parse JSON if server actually sent JSON
+    const ct = res.headers.get("content-type") || "";
+    const data = ct.includes("application/json") ? await res.json() : null;
 
-      // Save like state to localStorage
-      if (upload.liked) {
-        saveLike(upload._id);
-      } else {
-        removeLike(upload._id);
-      }
-
-      // Update UI
-      likesCountEl.textContent = `${upload.likes} likes`;
-      icon.className = upload.liked
-        ? "fa-solid fa-heart liked"
-        : "fa-regular fa-heart";
-    } else {
-      console.error("Server responded with error:", data);
+    if (!res.ok) {
+      console.error("Server responded with error:", data || (await res.text()));
+      return;
     }
+
+    upload.likes = data.likes;
+    upload.liked = data.liked;
+
+    likesCountEl.textContent = `${upload.likes} likes`;
+    icon.className = upload.liked ? "fa-solid fa-heart liked" : "fa-regular fa-heart";
+
+    // persist local like state
+    if (upload.liked) saveLike(upload._id);
+    else removeLike(upload._id);
   } catch (err) {
     console.error("Error toggling like:", err);
   }
