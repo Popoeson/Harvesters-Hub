@@ -69,46 +69,50 @@
   </div>
 
   <script>
-    const API_BASE = "https://harvesters-hub-fbgo.onrender.com/api/images";
+    const API_BASE = "https://harvesters-hub-fbgo.onrender.com/api/uploads";
     const urlParams = new URLSearchParams(window.location.search);
     const postId = urlParams.get("id");
 
     async function loadPost() {
-      try {
-        const res = await fetch(`${API_BASE}/${postId}`);
-        if (!res.ok) throw new Error("Failed to fetch post");
-        const post = await res.json();
+  try {
+    const res = await fetch(`${API_BASE}/${postId}`);
+    if (!res.ok) throw new Error("Failed to fetch post");
+    const result = await res.json();
+    const post = result.data;  // ✅ grab data from response
 
-        // ✅ Title fallback
-        document.getElementById("postTitle").textContent = post.title || "Harvesters Hub Post";
+    document.getElementById("postTitle").textContent = "Harvesters Hub Post";
 
-        // ✅ Media (image or video)
-        const mediaContainer = document.getElementById("postMedia");
-        mediaContainer.innerHTML = "";
-        if (post.resource_type === "video") {
-          const videoEl = document.createElement("video");
-          videoEl.src = post.url || post.secure_url;
-          videoEl.controls = true;
-          mediaContainer.appendChild(videoEl);
-        } else {
-          const imgEl = document.createElement("img");
-          imgEl.src = post.url || post.secure_url;
-          mediaContainer.appendChild(imgEl);
-        }
+    const imgContainer = document.getElementById("postImages");
+    imgContainer.innerHTML = "";
+    if (post.url) {
+      const imageEl = document.createElement("img");
+      imageEl.src = post.url;
+      imgContainer.appendChild(imageEl);
+    } else {
+      imgContainer.innerHTML = "<p>No image available</p>";
+    }
 
-        // ✅ Caption
-        document.getElementById("postCaption").textContent = post.comments || "No caption provided";
+    const commentBox = document.getElementById("postComment");
+    commentBox.innerHTML = "";
+    if (post.comments) {
+      const commentEl = document.createElement("div");
+      commentEl.className = "comment";
+      commentEl.textContent = post.comments;
+      commentBox.appendChild(commentEl);
+    } else {
+      commentBox.innerHTML = "<p>No caption provided</p>";
+    }
 
-        // ✅ Likes
-        document.getElementById("postLikes").textContent = `${post.likes || 0} likes`;
-
-      } catch (err) {
-        console.error(err);
-        document.querySelector(".container").innerHTML = `<p class="error">⚠️ Error loading post</p>`;
-      }
+  } catch (err) {
+    console.error(err);
+    document.getElementById("postTitle").textContent = "Error loading post";
+  }
     }
 
     loadPost();
   </script>
 </body>
 </html>
+
+
+
