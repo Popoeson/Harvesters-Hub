@@ -61,65 +61,69 @@
   </style>
 </head>
 <body>
-  <div class="container">
+ <!-- <div class="container">
     <h2 id="postTitle">Loading Post...</h2>
     <div class="media" id="postMedia"></div>
     <div class="caption" id="postCaption"></div>
     <div class="likes" id="postLikes"></div>
-  </div>
+  </div>-->
 
-  <script>
-  const API_BASE = "https://harvesters-hub-fbgo.onrender.com/api/uploads";
-  const urlParams = new URLSearchParams(window.location.search);
-  const postId = urlParams.get("id");
+  <div id="post-container" class="post">
+  <!-- Post will be injected here -->
+</div>
 
+<script>
   async function loadPost() {
+    const params = new URLSearchParams(window.location.search);
+    const postId = params.get("id");
+
+    if (!postId) return;
+
     try {
-      const res = await fetch(`${API_BASE}/${postId}`);
-      if (!res.ok) throw new Error("Failed to fetch post");
+      const response = await fetch(`/api/uploads/${postId}`);
+      const result = await response.json();
 
-      const result = await res.json();
-      const post = result.data;  // ✅ API returns { success, data }
-
-      // Title
-      document.getElementById("postTitle").textContent = "Harvesters Hub Post";
-
-      // Media (image or video)
-      const mediaContainer = document.getElementById("postMedia");
-      mediaContainer.innerHTML = "";
-      if (post.url) {
-        if (post.url.match(/\.(mp4|webm|ogg)$/i)) {
-          const videoEl = document.createElement("video");
-          videoEl.src = post.url;
-          videoEl.controls = true;
-          mediaContainer.appendChild(videoEl);
-        } else {
-          const imageEl = document.createElement("img");
-          imageEl.src = post.url;
-          mediaContainer.appendChild(imageEl);
-        }
-      } else {
-        mediaContainer.innerHTML = "<p>No media available</p>";
+      if (!result.success) {
+        document.getElementById("post-container").innerHTML = "<p>Post not found.</p>";
+        return;
       }
 
-      // Caption (comments field in your schema is actually caption-like)
-      const captionEl = document.getElementById("postCaption");
-      captionEl.textContent = post.comments && post.comments.length > 0
-        ? post.comments.join(", ")
-        : "No caption provided";
+      const post = result.data;
 
-      // Likes
-      const likesEl = document.getElementById("postLikes");
-      likesEl.textContent = `${post.likes || 0} likes`;
+      // ✅ Fix: Extract comments properly (if they are objects)
+      const comments = Array.isArray(post.comments)
+        ? post.comments.map(c => (typeof c === "string" ? c : c.text || "")).filter(Boolean)
+        : [];
 
-    } catch (err) {
-      console.error(err);
-      document.getElementById("postTitle").textContent = "Error loading post";
+      // ✅ Replicating homepage.html post structure
+      document.getElementById("post-container").innerHTML = `
+        <div class="post">
+          <img src="${post.url}" alt="Uploaded Image" class="post-img">
+
+          <div class="post-footer">
+            <p class="caption">${comments.length ? comments[0] : "No caption"}</p>
+
+            <div class="post-actions">
+              <span class="like-btn">❤️</span>
+              <span class="likes-count">${post.likes || 0} likes</span>
+              <span class="share-btn">🔗</span>
+              <a href="${post.url}" download>
+                <span class="download-btn">⬇️</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      `;
+    } catch (error) {
+      console.error("❌ Error loading post:", error);
+      document.getElementById("post-container").innerHTML = "<p>Error loading post.</p>";
     }
   }
 
   loadPost();
-  </script>
+</script>
+
+  
 </body>
 </html>
 
