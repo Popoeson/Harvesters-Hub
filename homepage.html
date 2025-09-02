@@ -211,11 +211,11 @@ function renderPosts(uploads) {
 
     // ✅ Share: copy unique link
     shareIcon.addEventListener("click", () => {
-      const postLink = `${window.location.origin}/post/${upload._id}`;
-      navigator.clipboard.writeText(postLink).then(() => {
-        showMessage("Post link copied to clipboard ✅");
-      });
-    });
+  const postLink = `${window.location.origin}/post.html?id=${upload._id}`;
+  navigator.clipboard.writeText(postLink).then(() => {
+    showMessage("Post link copied to clipboard ✅");
+  });
+});
 
     // ✅ Download: confirm then save
     downloadIcon.addEventListener("click", () => {
