@@ -67,42 +67,55 @@
   <div id="post-container" class="card">
     <!-- Post will load here -->
   </div>
+<script>
+  const API_BASE = "https://harvesters-hub-fbgo.onrender.com/api/uploads";
 
-  <script>
-    async function loadPost() {
-      const params = new URLSearchParams(window.location.search);
-      const postId = params.get("id");
+async function loadPost() {
+  const params = new URLSearchParams(window.location.search);
+  const postId = params.get("id");
 
-      if (!postId) {
-        document.getElementById("post-container").innerHTML = "<p>Post not found.</p>";
-        return;
-      }
+  if (!postId) return;
 
-      try {
-        const res = await fetch(`https://harvesters-hub-fbgo.onrender.com/api/posts/${postId}`);
-        if (!res.ok) throw new Error("Failed to fetch post");
+  try {
+    const response = await fetch(`${API_BASE}/${postId}`);
+    const result = await response.json();
 
-        const post = await res.json();
-
-        document.getElementById("post-container").innerHTML = `
-          ${post.imageUrl ? `<img src="${post.imageUrl}" alt="Post image">` : ""}
-          <div class="card-content">
-            <h2>${post.title || "Untitled"}</h2>
-            <p>${post.content || ""}</p>
-          </div>
-          <div class="icons">
-            <span>👍</span>
-            <span>💬</span>
-            <span>🔗</span>
-          </div>
-        `;
-      } catch (err) {
-        console.error("Error loading post", err);
-        document.getElementById("post-container").innerHTML = "<p>Could not load post.</p>";
-      }
+    if (!result.success) {
+      document.getElementById("post-container").innerHTML = "<p>Post not found.</p>";
+      return;
     }
 
-    loadPost();
-  </script>
+    const post = result.data;
+
+    const comments = Array.isArray(post.comments)
+      ? post.comments.map(c => (typeof c === "string" ? c : c.text || "")).filter(Boolean)
+      : [];
+
+    document.getElementById("post-container").innerHTML = `
+      <div class="post">
+        <img src="${post.url}" alt="Uploaded Image" class="post-img">
+
+        <div class="post-footer">
+          <p class="caption">${comments.length ? comments[0] : "No caption"}</p>
+
+          <div class="post-actions">
+            <span class="like-btn">❤️</span>
+            <span class="likes-count">${post.likes || 0} likes</span>
+            <span class="share-btn">🔗</span>
+            <a href="${post.url}" download>
+              <span class="download-btn">⬇️</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    `;
+  } catch (error) {
+    console.error("❌ Error loading post:", error);
+    document.getElementById("post-container").innerHTML = "<p>Error loading post.</p>";
+  }
+}
+
+loadPost();
+</script>
 </body>
 </html>
