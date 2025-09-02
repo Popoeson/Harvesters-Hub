@@ -3,86 +3,108 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Post</title>
+  <title>View Post</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f5f5f5;
+      background-color: #f4f4f4;
       margin: 0;
       padding: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
     }
+
     .container {
+      max-width: 800px;
+      margin: 40px auto;
       background: #fff;
       padding: 20px;
       border-radius: 10px;
-      max-width: 600px;
-      width: 100%;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
-    .image {
-      margin-bottom: 15px;
-    }
-    .image img {
-      max-width: 100%;
-      border-radius: 8px;
-      object-fit: cover;
-    }
-    .comment {
-      font-size: 1rem;
-      color: #333;
-    }
-    .likes {
-      font-size: 0.9rem;
-      color: #666;
-      margin-top: 8px;
-    }
-    .error {
+
+    h2 {
       text-align: center;
-      color: red;
-      font-weight: bold;
+      margin-bottom: 20px;
+    }
+
+    .images {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .images img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+
+    .comment-box {
+      border-top: 1px solid #ddd;
+      padding-top: 15px;
+    }
+
+    .comment {
+      background: #f9f9f9;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 6px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <div id="post-content">
-      <p>Loading...</p>
-    </div>
+    <h2 id="postTitle">Loading Post...</h2>
+    <div class="images" id="postImages"></div>
+    <div class="comment-box" id="postComment"></div>
   </div>
 
   <script>
-    // ✅ Get post ID from URL (/post/:id)
-const urlParams = new URLSearchParams(window.location.search);
-const postId = urlParams.get("id");
-    console.log("📌 Extracted postId:", postId);
+    const API_BASE = "https://harvesters-hub-fbgo.onrender.com/api/posts";
+    const urlParams = new URLSearchParams(window.location.search);
+    const postId = urlParams.get("id");
 
-    async function fetchPost() {
+    async function loadPost() {
       try {
-        const res = await fetch(`https://harvesters-hub-fbgo.onrender.com/api/images/${postId}`);
-        if (!res.ok) {
-          throw new Error("Post not found");
-        }
+        const res = await fetch(`${API_BASE}/${postId}`);
+        if (!res.ok) throw new Error("Failed to fetch post");
         const post = await res.json();
-        console.log("✅ Post fetched:", post);
 
-        document.getElementById("post-content").innerHTML = `
-          <div class="image">
-            <img id="postImage" src="${post.url}" alt="Post image">
-          </div>
-          <div id="postComments" class="comment">${post.comments}</div>
-          <div id="postLikes" class="likes">${post.likes} likes</div>
-        `;
-      } catch (error) {
-        console.error("❌ Error fetching post:", error);
-        document.getElementById("post-content").innerHTML = `<p class="error">⚠️ Post not found</p>`;
+        document.getElementById("postTitle").textContent = post.title || "Untitled Post";
+
+        const imgContainer = document.getElementById("postImages");
+        imgContainer.innerHTML = "";
+        if (post.images && post.images.length > 0) {
+          post.images.forEach(img => {
+            const imageEl = document.createElement("img");
+            imageEl.src = img.url; // assuming your DB saves { url: "..." }
+            imgContainer.appendChild(imageEl);
+          });
+        } else {
+          imgContainer.innerHTML = "<p>No images available</p>";
+        }
+
+        const commentBox = document.getElementById("postComment");
+        commentBox.innerHTML = "";
+        if (post.comment) {
+          const commentEl = document.createElement("div");
+          commentEl.className = "comment";
+          commentEl.textContent = post.comment;
+          commentBox.appendChild(commentEl);
+        } else {
+          commentBox.innerHTML = "<p>No comments yet</p>";
+        }
+
+      } catch (err) {
+        console.error(err);
+        document.getElementById("postTitle").textContent = "Error loading post";
       }
     }
 
-    fetchPost();
+    loadPost();
   </script>
 </body>
 </html>
