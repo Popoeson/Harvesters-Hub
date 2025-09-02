@@ -10,6 +10,10 @@
       background-color: #f4f4f4;
       margin: 0;
       padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
     }
 
     .container {
@@ -19,6 +23,7 @@
       padding: 20px;
       border-radius: 10px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      width: 100%;
     }
 
     h2 {
@@ -26,44 +31,45 @@
       margin-bottom: 20px;
     }
 
-    .images {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 15px;
-      justify-content: center;
+    .media {
       margin-bottom: 20px;
     }
 
-    .images img {
+    .media img, .media video {
       max-width: 100%;
-      height: auto;
       border-radius: 8px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.2);
     }
 
-    .comment-box {
-      border-top: 1px solid #ddd;
-      padding-top: 15px;
+    .caption {
+      font-size: 1rem;
+      color: #333;
+      margin-bottom: 15px;
     }
 
-    .comment {
-      background: #f9f9f9;
-      padding: 12px;
-      margin: 10px 0;
-      border-radius: 6px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    .likes {
+      font-size: 0.9rem;
+      color: #666;
+      font-weight: bold;
+    }
+
+    .error {
+      text-align: center;
+      color: red;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
   <div class="container">
     <h2 id="postTitle">Loading Post...</h2>
-    <div class="images" id="postImages"></div>
-    <div class="comment-box" id="postComment"></div>
+    <div class="media" id="postMedia"></div>
+    <div class="caption" id="postCaption"></div>
+    <div class="likes" id="postLikes"></div>
   </div>
 
   <script>
-    const API_BASE = "https://harvesters-hub-fbgo.onrender.com/api/posts";
+    const API_BASE = "https://harvesters-hub-fbgo.onrender.com/api/uploads";
     const urlParams = new URLSearchParams(window.location.search);
     const postId = urlParams.get("id");
 
@@ -73,34 +79,32 @@
         if (!res.ok) throw new Error("Failed to fetch post");
         const post = await res.json();
 
-        document.getElementById("postTitle").textContent = post.title || "Untitled Post";
+        // ✅ Title fallback
+        document.getElementById("postTitle").textContent = post.title || "Harvesters Hub Post";
 
-        const imgContainer = document.getElementById("postImages");
-        imgContainer.innerHTML = "";
-        if (post.images && post.images.length > 0) {
-          post.images.forEach(img => {
-            const imageEl = document.createElement("img");
-            imageEl.src = img.url; // assuming your DB saves { url: "..." }
-            imgContainer.appendChild(imageEl);
-          });
+        // ✅ Media (image or video)
+        const mediaContainer = document.getElementById("postMedia");
+        mediaContainer.innerHTML = "";
+        if (post.resource_type === "video") {
+          const videoEl = document.createElement("video");
+          videoEl.src = post.url || post.secure_url;
+          videoEl.controls = true;
+          mediaContainer.appendChild(videoEl);
         } else {
-          imgContainer.innerHTML = "<p>No images available</p>";
+          const imgEl = document.createElement("img");
+          imgEl.src = post.url || post.secure_url;
+          mediaContainer.appendChild(imgEl);
         }
 
-        const commentBox = document.getElementById("postComment");
-        commentBox.innerHTML = "";
-        if (post.comment) {
-          const commentEl = document.createElement("div");
-          commentEl.className = "comment";
-          commentEl.textContent = post.comment;
-          commentBox.appendChild(commentEl);
-        } else {
-          commentBox.innerHTML = "<p>No comments yet</p>";
-        }
+        // ✅ Caption
+        document.getElementById("postCaption").textContent = post.comments || "No caption provided";
+
+        // ✅ Likes
+        document.getElementById("postLikes").textContent = `${post.likes || 0} likes`;
 
       } catch (err) {
         console.error(err);
-        document.getElementById("postTitle").textContent = "Error loading post";
+        document.querySelector(".container").innerHTML = `<p class="error">⚠️ Error loading post</p>`;
       }
     }
 
