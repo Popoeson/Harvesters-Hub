@@ -73,54 +73,54 @@
 </div>
 
 <script>
-  async function loadPost() {
-    const params = new URLSearchParams(window.location.search);
-    const postId = params.get("id");
+  const API_BASE = "https://harvesters-hub-fbgo.onrender.com/api/uploads";
 
-    if (!postId) return;
+async function loadPost() {
+  const params = new URLSearchParams(window.location.search);
+  const postId = params.get("id");
 
-    try {
-      const response = await fetch(`/api/uploads/${postId}`);
-      const result = await response.json();
+  if (!postId) return;
 
-      if (!result.success) {
-        document.getElementById("post-container").innerHTML = "<p>Post not found.</p>";
-        return;
-      }
+  try {
+    const response = await fetch(`${API_BASE}/${postId}`);
+    const result = await response.json();
 
-      const post = result.data;
+    if (!result.success) {
+      document.getElementById("post-container").innerHTML = "<p>Post not found.</p>";
+      return;
+    }
 
-      // ✅ Fix: Extract comments properly (if they are objects)
-      const comments = Array.isArray(post.comments)
-        ? post.comments.map(c => (typeof c === "string" ? c : c.text || "")).filter(Boolean)
-        : [];
+    const post = result.data;
 
-      // ✅ Replicating homepage.html post structure
-      document.getElementById("post-container").innerHTML = `
-        <div class="post">
-          <img src="${post.url}" alt="Uploaded Image" class="post-img">
+    const comments = Array.isArray(post.comments)
+      ? post.comments.map(c => (typeof c === "string" ? c : c.text || "")).filter(Boolean)
+      : [];
 
-          <div class="post-footer">
-            <p class="caption">${comments.length ? comments[0] : "No caption"}</p>
+    document.getElementById("post-container").innerHTML = `
+      <div class="post">
+        <img src="${post.url}" alt="Uploaded Image" class="post-img">
 
-            <div class="post-actions">
-              <span class="like-btn">❤️</span>
-              <span class="likes-count">${post.likes || 0} likes</span>
-              <span class="share-btn">🔗</span>
-              <a href="${post.url}" download>
-                <span class="download-btn">⬇️</span>
-              </a>
-            </div>
+        <div class="post-footer">
+          <p class="caption">${comments.length ? comments[0] : "No caption"}</p>
+
+          <div class="post-actions">
+            <span class="like-btn">❤️</span>
+            <span class="likes-count">${post.likes || 0} likes</span>
+            <span class="share-btn">🔗</span>
+            <a href="${post.url}" download>
+              <span class="download-btn">⬇️</span>
+            </a>
           </div>
         </div>
-      `;
-    } catch (error) {
-      console.error("❌ Error loading post:", error);
-      document.getElementById("post-container").innerHTML = "<p>Error loading post.</p>";
-    }
+      </div>
+    `;
+  } catch (error) {
+    console.error("❌ Error loading post:", error);
+    document.getElementById("post-container").innerHTML = "<p>Error loading post.</p>";
   }
+}
 
-  loadPost();
+loadPost();
 </script>
 
   
