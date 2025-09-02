@@ -73,7 +73,7 @@
       const postId = params.get("id");
 
       try {
-        const res = await fetch(`https://harvesters-hub-fbgo.onrender.com/api/posts/${postId}`);
+        const res = await fetch(`https://harvesters-hub-fbgo.onrender.com/api/uploads/${postId}`);
         if (!res.ok) throw new Error("Failed to fetch post");
         const post = await res.json();
 
