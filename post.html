@@ -35,6 +35,11 @@
       font-size: 1rem;
       color: #333;
     }
+    .likes {
+      font-size: 0.9rem;
+      color: #666;
+      margin-top: 8px;
+    }
     .error {
       text-align: center;
       color: red;
@@ -53,31 +58,31 @@
     // ✅ Get post ID from URL (/post/:id)
     const pathParts = window.location.pathname.split("/");
     const postId = pathParts[pathParts.length - 1];
+    console.log("📌 Extracted postId:", postId);
 
     async function fetchPost() {
-  const pathParts = window.location.pathname.split("/");
-  const postId = pathParts[pathParts.length - 1]; // get the last part of the path
-  console.log("📌 Extracted postId:", postId);
+      try {
+        const res = await fetch(`https://harvesters-hub-fbgo.onrender.com/api/images/${postId}`);
+        if (!res.ok) {
+          throw new Error("Post not found");
+        }
+        const post = await res.json();
+        console.log("✅ Post fetched:", post);
 
-  try {
-    const res = await fetch(`https://harvesters-hub-fbgo.onrender.com/api/images/${postId}`);
-    if (!res.ok) {
-      throw new Error("Post not found");
+        document.getElementById("post-content").innerHTML = `
+          <div class="image">
+            <img id="postImage" src="${post.url}" alt="Post image">
+          </div>
+          <div id="postComments" class="comment">${post.comments}</div>
+          <div id="postLikes" class="likes">${post.likes} likes</div>
+        `;
+      } catch (error) {
+        console.error("❌ Error fetching post:", error);
+        document.getElementById("post-content").innerHTML = `<p class="error">⚠️ Post not found</p>`;
+      }
     }
-    const post = await res.json();
-    console.log("✅ Post fetched:", post);
 
-    document.getElementById("postImage").src = post.url;
-    document.getElementById("postComments").innerText = post.comments;
-    document.getElementById("postLikes").innerText = `${post.likes} likes`;
-
-  } catch (error) {
-    console.error("❌ Error fetching post:", error);
-    document.getElementById("postContainer").innerHTML = `<p>Post not found.</p>`;
-  }
-}
-
-fetchPost();
+    fetchPost();
   </script>
 </body>
 </html>
