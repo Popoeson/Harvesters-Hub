@@ -9,22 +9,31 @@
       font-family: Arial, sans-serif;
       background: #fff;
       margin: 0;
-      padding: 0;
+      padding-top: 70px; /* avoid content hiding behind fixed header */
+  
     }
 
     header {
-      background: #fff;
-      padding: 15px;
-      text-align: center;
-      font-weight: bold;
-      border-bottom: 1px solid #ddd;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
+    background: #fff;
+    padding: 10px;
+    text-align: center;
+    font-weight: bold;
+    border-bottom: 1px solid #ddd;
+    position: fixed; /* changed from sticky to fixed */
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 10;
+    height: 65px;
+    transition: transform 0.3s ease-in-out; /* smooth slide */
+  }
+  
+  header.hidden {
+    transform: translateY(-100%); /* move header out of view */
+  }
 
     .post {
-      max-width: 500px;
+      max-width: 400px;
       margin: 20px auto;
       border: 1px solid #ddd;
       border-radius: 10px;
@@ -58,7 +67,7 @@
       padding: 0 10px 10px;
       font-weight: bold;
     }
-
+    
     .caption {
   padding: 10px;
   font-size: 14px;
@@ -66,7 +75,7 @@
   border-top: 1px solid #eee;
   border-bottom: 1px solid #eee;
   background: #fafafa;
-    }
+}
 
     .message {
       position: fixed;
@@ -86,7 +95,7 @@
       align-items: center;
       justify-content: space-between;
       background: #fff;
-      padding: 10px 20px;
+      padding: 10px 10px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
       flex-wrap: wrap;
       gap: 10px;
@@ -94,7 +103,7 @@
       border-radius: 5px;
     }
     .navbar img {
-      height: 30px;
+      height: 20px;
     }
     .navbar h1 {
       flex-grow: 1;
@@ -211,11 +220,11 @@ function renderPosts(uploads) {
 
     // ✅ Share: copy unique link
     shareIcon.addEventListener("click", () => {
-  const postLink = `${window.location.origin}/post.html?id=${upload._id}`;
-  navigator.clipboard.writeText(postLink).then(() => {
-    showMessage("Post link copied to clipboard ✅");
-  });
-});
+      const postLink = `${window.location.origin}/post/${upload._id}`;
+      navigator.clipboard.writeText(postLink).then(() => {
+        showMessage("Post link copied to clipboard ✅");
+      });
+    });
 
     // ✅ Download: confirm then save
     downloadIcon.addEventListener("click", () => {
@@ -310,8 +319,25 @@ function showMessage(msg) {
 }
 
 fetchUploads();
-  </script>
 
-  
+let lastScrollTop = 0;
+const header = document.querySelector("header");
+
+window.addEventListener("scroll", () => {
+  const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+
+  if (currentScroll > lastScrollTop) {
+    // scrolling down → hide header
+    header.classList.add("hidden");
+  } else {
+    // scrolling up → show header
+    header.classList.remove("hidden");
+  }
+
+  lastScrollTop = currentScroll <= 0 ? 0 : currentScroll; // avoid negative
+}, false);
+
+</script>
 </body>
   </html>
+  
