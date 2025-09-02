@@ -56,8 +56,8 @@
 
   <script>
     // ✅ Get post ID from URL (/post/:id)
-    const pathParts = window.location.pathname.split("/");
-    const postId = pathParts[pathParts.length - 1];
+const urlParams = new URLSearchParams(window.location.search);
+const postId = urlParams.get("id");
     console.log("📌 Extracted postId:", postId);
 
     async function fetchPost() {
