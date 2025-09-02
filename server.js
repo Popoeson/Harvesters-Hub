@@ -141,29 +141,31 @@ app.post("/api/uploads/:id/like", async (req, res) => {
   }
 });
 
-// ✅ Single Post View Route
-app.get("/api/images/:id", async (req, res) => {
+// ✅ Single Post View Route (use Image model)
+app.get("/api/uploads/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const post = await Post.findById(id); // Post is your mongoose model from ImageSchema
+    const image = await Image.findById(id);  // <-- use Image model
 
-    if (!post) {
-      return res.status(404).json({ message: "Post not found" });
+    if (!image) {
+      return res.status(404).json({ success: false, message: "Post not found" });
     }
 
     res.json({
-      id: post._id,
-      url: post.url,               // ✅ image url
-      comments: post.comments,     // ✅ image caption/comments
-      likes: post.likes,           // ✅ total likes
-      likedBy: post.likedBy,       // ✅ array of who liked (optional)
-      dateUploaded: post.dateUploaded,
-      createdAt: post.createdAt,
-      updatedAt: post.updatedAt
+      success: true,
+      data: {
+        _id: image._id,
+        url: image.url,
+        comments: image.comments,
+        likes: image.likes,
+        likedBy: image.likedBy,
+        createdAt: image.createdAt,
+        updatedAt: image.updatedAt,
+      }
     });
   } catch (error) {
     console.error("❌ Error fetching post:", error);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ success: false, message: "Server error" });
   }
 });
 // Global error handler – always return JSON
