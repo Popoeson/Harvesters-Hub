@@ -7,125 +7,149 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #f4f4f4;
+      background: #f4f4f4;
       margin: 0;
       padding: 0;
       display: flex;
       justify-content: center;
-      align-items: flex-start;
-      min-height: 100vh;
     }
 
     .container {
-      max-width: 800px;
-      margin: 40px auto;
-      background: #fff;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
       width: 100%;
+      max-width: 600px;
+      margin-top: 20px;
     }
 
-    h2 {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-
-    .media {
-      margin-bottom: 20px;
-    }
-
-    .media img, .media video {
-      max-width: 100%;
-      border-radius: 8px;
+    .card {
+      background: white;
+      border-radius: 10px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+
+    .card img {
+      width: 100%;
+      display: block;
+    }
+
+    .card-content {
+      padding: 15px;
     }
 
     .caption {
-      font-size: 1rem;
+      margin: 0 0 10px;
+      font-size: 16px;
       color: #333;
-      margin-bottom: 15px;
     }
 
-    .likes {
-      font-size: 0.9rem;
-      color: #666;
-      font-weight: bold;
+    .actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 15px;
+      border-top: 1px solid #eee;
     }
 
-    .error {
-      text-align: center;
-      color: red;
-      font-weight: bold;
+    .left-actions {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .action-icon {
+      cursor: pointer;
+      font-size: 20px;
+      user-select: none;
+    }
+
+    .likes-count {
+      font-size: 14px;
+      color: #555;
     }
   </style>
 </head>
 <body>
- <!-- <div class="container">
-    <h2 id="postTitle">Loading Post...</h2>
-    <div class="media" id="postMedia"></div>
-    <div class="caption" id="postCaption"></div>
-    <div class="likes" id="postLikes"></div>
-  </div>-->
-
-  <div id="post-container" class="post">
-  <!-- Post will be injected here -->
-</div>
-
-<script>
-  const API_BASE = "https://harvesters-hub-fbgo.onrender.com/api/uploads";
-
-async function loadPost() {
-  const params = new URLSearchParams(window.location.search);
-  const postId = params.get("id");
-
-  if (!postId) return;
-
-  try {
-    const response = await fetch(`${API_BASE}/${postId}`);
-    const result = await response.json();
-
-    if (!result.success) {
-      document.getElementById("post-container").innerHTML = "<p>Post not found.</p>";
-      return;
-    }
-
-    const post = result.data;
-
-    const comments = Array.isArray(post.comments)
-      ? post.comments.map(c => (typeof c === "string" ? c : c.text || "")).filter(Boolean)
-      : [];
-
-    document.getElementById("post-container").innerHTML = `
-      <div class="post">
-        <img src="${post.url}" alt="Uploaded Image" class="post-img">
-
-        <div class="post-footer">
-          <p class="caption">${comments.length ? comments[0] : "No caption"}</p>
-
-          <div class="post-actions">
-            <span class="like-btn">❤️</span>
-            <span class="likes-count">${post.likes || 0} likes</span>
-            <span class="share-btn">🔗</span>
-            <a href="${post.url}" download>
-              <span class="download-btn">⬇️</span>
-            </a>
-          </div>
+  <div class="container">
+    <div id="postCard" class="card">
+      <img id="postImage" src="" alt="Post Image">
+      <div class="card-content">
+        <p id="postCaption" class="caption"></p>
+      </div>
+      <div class="actions">
+        <div class="left-actions">
+          <span id="likeBtn" class="action-icon">❤️</span>
+          <span id="likesCount" class="likes-count">0 likes</span>
+        </div>
+        <div class="right-actions">
+          <span id="shareBtn" class="action-icon">🔗</span>
+          <span id="downloadBtn" class="action-icon">⬇️</span>
         </div>
       </div>
-    `;
-  } catch (error) {
-    console.error("❌ Error loading post:", error);
-    document.getElementById("post-container").innerHTML = "<p>Error loading post.</p>";
-  }
-}
+    </div>
+  </div>
 
-loadPost();
-</script>
+  <script>
+    const API_BASE = "https://harvesters-hub-fbgo.onrender.com/api/images";
 
-  
+    async function loadPost() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const postId = urlParams.get("id");
+      if (!postId) {
+        alert("No post ID found in URL.");
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/${postId}`);
+        if (!res.ok) throw new Error("Failed to fetch post");
+        const post = await res.json();
+
+        document.getElementById("postImage").src = post.imageUrl;
+        document.getElementById("postCaption").innerText = post.caption || "";
+        document.getElementById("likesCount").innerText = `${post.likes || 0} likes`;
+
+        // Like button
+        document.getElementById("likeBtn").addEventListener("click", async () => {
+          try {
+            const likeRes = await fetch(`${API_BASE}/${postId}/like`, { method: "POST" });
+            if (likeRes.ok) {
+              const updated = await likeRes.json();
+              document.getElementById("likesCount").innerText = `${updated.likes} likes`;
+            }
+          } catch (err) {
+            console.error("Error liking post:", err);
+          }
+        });
+
+        // Share button
+        document.getElementById("shareBtn").addEventListener("click", async () => {
+          if (navigator.share) {
+            await navigator.share({
+              title: "Check out this post!",
+              text: post.caption || "",
+              url: window.location.href
+            });
+          } else {
+            navigator.clipboard.writeText(window.location.href);
+            alert("Post link copied!");
+          }
+        });
+
+        // Download button
+        document.getElementById("downloadBtn").addEventListener("click", () => {
+          const a = document.createElement("a");
+          a.href = post.imageUrl;
+          a.download = "post.jpg";
+          a.click();
+        });
+
+      } catch (err) {
+        console.error("Error loading post", err);
+      }
+    }
+
+    loadPost();
+  </script>
 </body>
-</html>
-
-
-
+  </html>
