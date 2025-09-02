@@ -7,100 +7,98 @@
   <style>
     body {
       font-family: Arial, sans-serif;
+      background: #f9f9f9;
       margin: 0;
-      padding: 0;
-      background-color: #f0f2f5;
+      padding: 20px;
       display: flex;
       justify-content: center;
+      align-items: flex-start;
     }
 
     .card {
-      background: white;
-      border-radius: 10px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-      margin: 20px;
-      width: 100%;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
       max-width: 600px;
+      width: 100%;
       overflow: hidden;
     }
 
     .card img {
       width: 100%;
-      height: auto;
       display: block;
+      border-bottom: 1px solid #ddd;
     }
 
     .card-content {
-      padding: 15px;
+      padding: 16px;
     }
 
-    .caption {
-      margin-bottom: 10px;
-      font-size: 16px;
+    .card-content h2 {
+      margin: 0 0 10px;
+      font-size: 20px;
       color: #333;
+    }
+
+    .card-content p {
+      margin: 0 0 12px;
+      color: #555;
     }
 
     .icons {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-    }
-
-    .icons .left {
-      display: flex;
-      align-items: center;
-      gap: 15px;
+      padding: 12px 16px;
+      border-top: 1px solid #eee;
     }
 
     .icons span {
-      font-size: 20px;
       cursor: pointer;
+      font-size: 18px;
+      color: #666;
     }
 
-    .likes-count {
-      font-size: 14px;
-      color: #555;
-      margin-left: 5px;
+    .icons span:hover {
+      color: #000;
     }
   </style>
 </head>
 <body>
-  <div id="post-container"></div>
+  <div id="post-container" class="card">
+    <!-- Post will load here -->
+  </div>
 
   <script>
     async function loadPost() {
       const params = new URLSearchParams(window.location.search);
       const postId = params.get("id");
 
+      if (!postId) {
+        document.getElementById("post-container").innerHTML = "<p>Post not found.</p>";
+        return;
+      }
+
       try {
-        const res = await fetch(`https://harvesters-hub-fbgo.onrender.com/api/uploads/${postId}`);
+        const res = await fetch(`https://harvesters-hub-fbgo.onrender.com/api/posts/${postId}`);
         if (!res.ok) throw new Error("Failed to fetch post");
+
         const post = await res.json();
 
-        // fallback for image field name
-        const imageUrl = post.image || post.imageUrl;
-
-        const container = document.getElementById("post-container");
-        container.innerHTML = `
-          <div class="card">
-            <img src="${post.url}" alt="Post Image" />
-            <div class="card-content">
-              <div class="caption">${post.caption || ""}</div>
-              <div class="icons">
-                <div class="left">
-                  <span>❤️</span>
-                  <span class="likes-count">${post.likes || 0} likes</span>
-                </div>
-                <div class="right">
-                  <span>🔗</span>
-                  <span>⬇️</span>
-                </div>
-              </div>
-            </div>
+        document.getElementById("post-container").innerHTML = `
+          ${post.imageUrl ? `<img src="${post.imageUrl}" alt="Post image">` : ""}
+          <div class="card-content">
+            <h2>${post.title || "Untitled"}</h2>
+            <p>${post.content || ""}</p>
+          </div>
+          <div class="icons">
+            <span>👍</span>
+            <span>💬</span>
+            <span>🔗</span>
           </div>
         `;
       } catch (err) {
         console.error("Error loading post", err);
+        document.getElementById("post-container").innerHTML = "<p>Could not load post.</p>";
       }
     }
 
