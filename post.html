@@ -69,47 +69,56 @@
   </div>
 
   <script>
-    const API_BASE = "https://harvesters-hub-fbgo.onrender.com/api/uploads";
-    const urlParams = new URLSearchParams(window.location.search);
-    const postId = urlParams.get("id");
+  const API_BASE = "https://harvesters-hub-fbgo.onrender.com/api/uploads";
+  const urlParams = new URLSearchParams(window.location.search);
+  const postId = urlParams.get("id");
 
-    async function loadPost() {
-  try {
-    const res = await fetch(`${API_BASE}/${postId}`);
-    if (!res.ok) throw new Error("Failed to fetch post");
-    const result = await res.json();
-    const post = result.data;  // ✅ grab data from response
+  async function loadPost() {
+    try {
+      const res = await fetch(`${API_BASE}/${postId}`);
+      if (!res.ok) throw new Error("Failed to fetch post");
 
-    document.getElementById("postTitle").textContent = "Harvesters Hub Post";
+      const result = await res.json();
+      const post = result.data;  // ✅ API returns { success, data }
 
-    const imgContainer = document.getElementById("postImages");
-    imgContainer.innerHTML = "";
-    if (post.url) {
-      const imageEl = document.createElement("img");
-      imageEl.src = post.url;
-      imgContainer.appendChild(imageEl);
-    } else {
-      imgContainer.innerHTML = "<p>No image available</p>";
+      // Title
+      document.getElementById("postTitle").textContent = "Harvesters Hub Post";
+
+      // Media (image or video)
+      const mediaContainer = document.getElementById("postMedia");
+      mediaContainer.innerHTML = "";
+      if (post.url) {
+        if (post.url.match(/\.(mp4|webm|ogg)$/i)) {
+          const videoEl = document.createElement("video");
+          videoEl.src = post.url;
+          videoEl.controls = true;
+          mediaContainer.appendChild(videoEl);
+        } else {
+          const imageEl = document.createElement("img");
+          imageEl.src = post.url;
+          mediaContainer.appendChild(imageEl);
+        }
+      } else {
+        mediaContainer.innerHTML = "<p>No media available</p>";
+      }
+
+      // Caption (comments field in your schema is actually caption-like)
+      const captionEl = document.getElementById("postCaption");
+      captionEl.textContent = post.comments && post.comments.length > 0
+        ? post.comments.join(", ")
+        : "No caption provided";
+
+      // Likes
+      const likesEl = document.getElementById("postLikes");
+      likesEl.textContent = `${post.likes || 0} likes`;
+
+    } catch (err) {
+      console.error(err);
+      document.getElementById("postTitle").textContent = "Error loading post";
     }
-
-    const commentBox = document.getElementById("postComment");
-    commentBox.innerHTML = "";
-    if (post.comments) {
-      const commentEl = document.createElement("div");
-      commentEl.className = "comment";
-      commentEl.textContent = post.comments;
-      commentBox.appendChild(commentEl);
-    } else {
-      commentBox.innerHTML = "<p>No caption provided</p>";
-    }
-
-  } catch (err) {
-    console.error(err);
-    document.getElementById("postTitle").textContent = "Error loading post";
   }
-    }
 
-    loadPost();
+  loadPost();
   </script>
 </body>
 </html>
