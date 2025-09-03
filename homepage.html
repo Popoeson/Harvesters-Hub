@@ -184,6 +184,15 @@ function renderPosts(uploads) {
       mediaEl.src = upload.fileUrl;
     }
 
+    // Scroll to specific post if hash is present
+const hash = window.location.hash;
+if (hash) {
+  const el = document.querySelector(hash);
+  if (el) {
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+    }
+
     
     // ✅ click image → single post view
     mediaEl.addEventListener("click", () => {
