@@ -146,12 +146,15 @@
       `;
 
       // Share button
-      document.getElementById("share-btn").addEventListener("click", () => {
-        const shareUrl = \`https://harvesters-hub.vercel.app/post.html?id=\${postId}\`;
-        navigator.clipboard.writeText(shareUrl).then(() => {
-          alert("Post link copied!");
-        });
-      });
+document.getElementById("share-btn").addEventListener("click", () => {
+  const shareUrl = `https://harvesters-hub.vercel.app/post.html?id=${postId}`;
+  navigator.clipboard.writeText(shareUrl).then(() => {
+    alert("Post link copied!");
+  });
+});
+
+// Back home button
+document.getElementById("back-home").setAttribute("href", `homepage.html#post-${postId}`);
 
       // Back home button
       document.getElementById("back-home").setAttribute("href", \`homepage.html#post-\${postId}\`);
