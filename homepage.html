@@ -183,6 +183,12 @@ function renderPosts(uploads) {
       mediaEl.src = upload.fileUrl;
     }
 
+    
+    // ✅ click image → single post view
+    mediaEl.addEventListener("click", () => {
+      window.location.href = `post.html?id=${upload._id}`;
+    });
+
     // ✅ Caption block
     const caption = document.createElement("div");
     caption.className = "caption";
