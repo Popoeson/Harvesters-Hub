@@ -9,113 +9,159 @@
       font-family: Arial, sans-serif;
       background: #f9f9f9;
       margin: 0;
-      padding: 20px;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
+      padding: 0;
     }
 
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #fff;
+      padding: 12px 16px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .header img {
+      height: 30px;
+    }
+
+    .header-title {
+      font-weight: bold;
+      font-size: 18px;
+      text-align: center;
+      flex-grow: 1;
+    }
+
+    .back-home {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      color: #333;
+      text-decoration: none;
+    }
+
+    .back-home:hover {
+      color: #000;
+    }
+
+    /* Card */
     .card {
       background: #fff;
       border-radius: 12px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
       max-width: 600px;
-      width: 100%;
+      margin: 20px auto;
       overflow: hidden;
     }
 
     .card img {
       width: 100%;
       display: block;
-      border-bottom: 1px solid #ddd;
     }
 
-    .card-content {
-      padding: 16px;
-    }
-
-    .card-content h2 {
-      margin: 0 0 10px;
-      font-size: 20px;
-      color: #333;
-    }
-
-    .card-content p {
-      margin: 0 0 12px;
-      color: #555;
+    .caption {
+      padding: 12px 16px;
+      font-size: 14px;
+      color: #444;
     }
 
     .icons {
       display: flex;
-      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
       padding: 12px 16px;
       border-top: 1px solid #eee;
-    }
-
-    .icons span {
-      cursor: pointer;
-      font-size: 18px;
+      font-size: 20px;
       color: #666;
     }
 
-    .icons span:hover {
-      color: #000;
+    .icons span,
+    .icons a {
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .likes {
+      padding: 0 16px 12px;
+      font-weight: bold;
+      font-size: 14px;
     }
   </style>
 </head>
 <body>
+
+  <!-- Header -->
+  <div class="header">
+    <div></div> <!-- empty placeholder for left alignment -->
+    <div class="header-title">
+      <img src="logo.png" alt="Logo"> <!-- replace with your actual logo path -->
+      <div>Harvesters Hub 😊</div>
+    </div>
+    <a id="back-home" class="back-home">
+      🏠 View in Home
+    </a>
+  </div>
+
+  <!-- Post -->
   <div id="post-container" class="card">
     <!-- Post will load here -->
   </div>
-  <script>
-const API_BASE = "https://harvesters-hub-fbgo.onrender.com/api/uploads";
 
-async function loadPost() {
-  const params = new URLSearchParams(window.location.search);
-  const postId = params.get("id");
+<script>
+  const API_BASE = "https://harvesters-hub-fbgo.onrender.com/api/uploads";
 
-  if (!postId) return;
+  async function loadPost() {
+    const params = new URLSearchParams(window.location.search);
+    const postId = params.get("id");
 
-  try {
-    const response = await fetch(`${API_BASE}/${postId}`);
-    const result = await response.json();
+    if (!postId) return;
 
-    if (!result.success) {
-      document.getElementById("post-container").innerHTML = "<p>Post not found.</p>";
-      return;
-    }
+    try {
+      const response = await fetch(`${API_BASE}/${postId}`);
+      const result = await response.json();
 
-    const post = result.data;
+      if (!result.success) {
+        document.getElementById("post-container").innerHTML = "<p>Post not found.</p>";
+        return;
+      }
 
-    const comments = Array.isArray(post.comments)
-      ? post.comments.map(c => (typeof c === "string" ? c : c.text || "")).filter(Boolean)
-      : [];
+      const post = result.data;
 
-    document.getElementById("post-container").innerHTML = `
-      <div class="post">
-        <img src="${post.url}" alt="Uploaded Image" class="post-img">
-
-        <div class="post-footer">
-          <p class="caption">${comments.length ? comments[0] : "No caption"}</p>
-
-          <div class="post-actions">
-            <span class="like-btn">❤️</span>
-            <span class="likes-count">${post.likes || 0} likes</span>
-            <span class="share-btn">🔗</span>
-            <a href="${post.url}" download>
-              <span class="download-btn">⬇️</span>
-            </a>
-          </div>
+      document.getElementById("post-container").innerHTML = `
+        <img src="${post.url}" alt="Uploaded Image">
+        <div class="caption">${post.comments || "No caption"}</div>
+        <div class="icons">
+          <span>♡</span>
+          <span id="share-btn">↗</span>
+          <a href="${post.url}" download>⬇️</a>
         </div>
-      </div>
-    `;
-  } catch (error) {
-    console.error("❌ Error loading post:", error);
-    document.getElementById("post-container").innerHTML = "<p>Error loading post.</p>";
-  }
-}
+        <div class="likes">${post.likes || 0} likes</div>
+      `;
 
-loadPost();
+      // Share button
+      document.getElementById("share-btn").addEventListener("click", () => {
+        const shareUrl = \`https://harvesters-hub.vercel.app/post.html?id=\${postId}\`;
+        navigator.clipboard.writeText(shareUrl).then(() => {
+          alert("Post link copied!");
+        });
+      });
+
+      // Back home button
+      document.getElementById("back-home").setAttribute("href", \`homepage.html#post-\${postId}\`);
+    } catch (error) {
+      console.error("❌ Error loading post:", error);
+      document.getElementById("post-container").innerHTML = "<p>Error loading post.</p>";
+    }
+  }
+
+  loadPost();
 </script>
 </body>
 </html>
