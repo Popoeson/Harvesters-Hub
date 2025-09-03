@@ -140,6 +140,7 @@
 
   <div class="message" id="messageBox"></div>
 
+  
   <script>
 const API_URL = "https://harvesters-hub-fbgo.onrender.com";
 
@@ -172,8 +173,8 @@ function renderPosts(uploads) {
   uploads.forEach(upload => {
     const post = document.createElement("div");
     post.className = "post";
-    post.id = `post-${upload._id}`;   
-    
+    post.id = `post-${upload._id}`;
+
     let mediaEl;
     if (upload.fileType === "video") {
       mediaEl = document.createElement("video");
@@ -184,16 +185,6 @@ function renderPosts(uploads) {
       mediaEl.src = upload.fileUrl;
     }
 
-    // Scroll to specific post if hash is present
-const hash = window.location.hash;
-if (hash) {
-  const el = document.querySelector(hash);
-  if (el) {
-    el.scrollIntoView({ behavior: "smooth", block: "center" });
-  }
-    }
-
-    
     // ✅ click image → single post view
     mediaEl.addEventListener("click", () => {
       window.location.href = `post.html?id=${upload._id}`;
@@ -236,18 +227,18 @@ if (hash) {
 
     // ✅ Share: copy unique link
     shareIcon.addEventListener("click", () => {
-  const postLink = `${window.location.origin}/post.html?id=${upload._id}`;
-  if (navigator.share) {
-    navigator.share({
-      title: "Check out this post!",
-      url: postLink
-    }).catch(err => console.log("Share cancelled", err));
-  } else {
-    navigator.clipboard.writeText(postLink).then(() => {
-      showMessage("🔗 Post link copied to clipboard ✅");
+      const postLink = `${window.location.origin}/post.html?id=${upload._id}`;
+      if (navigator.share) {
+        navigator.share({
+          title: "Check out this post!",
+          url: postLink
+        }).catch(err => console.log("Share cancelled", err));
+      } else {
+        navigator.clipboard.writeText(postLink).then(() => {
+          showMessage("🔗 Post link copied to clipboard ✅");
+        });
+      }
     });
-  }
-});
     
     // ✅ Download: confirm then save
     downloadIcon.addEventListener("click", () => {
@@ -267,6 +258,17 @@ if (hash) {
     post.appendChild(likesCount);
     feed.appendChild(post);
   });
+
+  // ✅ After rendering, handle scroll-to-hash
+  const hash = window.location.hash;
+  if (hash) {
+    setTimeout(() => {
+      const el = document.querySelector(hash);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }, 300); // small delay ensures posts are mounted
+  }
 }
 
 async function handleLikeToggle(upload, icon, likesCountEl) {
@@ -359,7 +361,7 @@ window.addEventListener("scroll", () => {
 
   lastScrollTop = currentScroll <= 0 ? 0 : currentScroll; // avoid negative
 }, false);
-
+  </script>
 </script>
 </body>
   </html>
