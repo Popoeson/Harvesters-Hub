@@ -155,9 +155,6 @@ document.getElementById("share-btn").addEventListener("click", () => {
 
 // Back home button
 document.getElementById("back-home").setAttribute("href", `homepage.html#post-${postId}`);
-
-      // Back home button
-      document.getElementById("back-home").setAttribute("href", \`homepage.html#post-\${postId}\`);
     } catch (error) {
       console.error("❌ Error loading post:", error);
       document.getElementById("post-container").innerHTML = "<p>Error loading post.</p>";
