@@ -65,8 +65,17 @@ const ImageSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+const campusSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  address: { type: String, required: true },
+  logo: { type: String },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true }, // stored as plain text now
+}, { timestamps: true });
+
 // ---------- Mongoose Models ---------
 const Image = mongoose.model("Image", ImageSchema);
+module.exports = mongoose.model("Campus", campusSchema);
 
 // ---------- Routes ----------
 
