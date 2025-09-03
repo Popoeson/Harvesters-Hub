@@ -172,7 +172,8 @@ function renderPosts(uploads) {
   uploads.forEach(upload => {
     const post = document.createElement("div");
     post.className = "post";
-
+    post.id = `post-${upload._id}`;   
+    
     let mediaEl;
     if (upload.fileType === "video") {
       mediaEl = document.createElement("video");
