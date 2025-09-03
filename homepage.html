@@ -361,6 +361,11 @@ window.addEventListener("scroll", () => {
 
   lastScrollTop = currentScroll <= 0 ? 0 : currentScroll; // avoid negative
 }, false);
+
+  // ✅ Clear hash if this is a page reload
+if (performance.getEntriesByType("navigation")[0].type === "reload") {
+  history.replaceState(null, null, window.location.pathname);
+    }
   </script>
 </script>
 </body>
