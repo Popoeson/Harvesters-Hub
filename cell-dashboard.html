@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cell Dashboard</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f9f9f9;
+      margin: 0;
+      padding: 0;
+    }
+    .header {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #fff;
+      padding: 12px 16px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+    .header img { height: 30px; }
+    .dashboard {
+      width: 100%;
+      margin: 20px auto;
+      padding: 20px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+    }
+    .search-box {
+      margin-bottom: 15px;
+      display: flex;
+      justify-content: flex-end;
+    }
+    .search-box input {
+      padding: 8px;
+      width: 250px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    table, th, td {
+      border: 1px solid #ddd;
+    }
+    th, td {
+      padding: 12px;
+      text-align: center;
+    }
+    th {
+      background: #f2f2f2;
+      font-weight: bold;
+    }
+    tr:hover {
+      background: #f9f9f9;
+    }
+    img.logo {
+      width: 40px;
+      height: 40px;
+      object-fit: cover;
+      border-radius: 50%;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <img src="uploads/harvesters.png" alt="Logo">
+  </div>
+
+  <div class="dashboard">
+    <h2>Registered Cells</h2>
+    <div class="search-box">
+      <input type="text" id="search" placeholder="Search cells...">
+    </div>
+    <table id="cellTable">
+      <thead>
+        <tr>
+          <th>Serial No.</th>
+          <th>Logo</th>
+          <th>Cell Name</th>
+          <th>Campus</th>
+          <th>District</th>
+          <th>Leader</th>
+          <th>Phone</th>
+          <th>Email</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <script>
+    const API_BASE = "https://harvesters-hub-fbgo.onrender.com/api";
+
+    async function fetchCells() {
+      try {
+        const res = await fetch(`${API_BASE}/cell`);
+        const data = await res.json();
+
+        if (data.success) {
+          const tbody = document.querySelector("#cellTable tbody");
+          tbody.innerHTML = "";
+
+          data.data.forEach((cell, index) => {
+            const row = `
+              <tr>
+                <td>${index + 1}</td>
+                <td><img src="${cell.logo}" class="logo" alt="logo"></td>
+                <td>${cell.name}</td>
+                <td>${cell.campus?.name || "N/A"}</td>
+                <td>${cell.district?.name || "N/A"}</td>
+                <td>${cell.leader}</td>
+                <td>${cell.phone}</td>
+                <td>${cell.email}</td>
+              </tr>
+            `;
+            tbody.innerHTML += row;
+          });
+        }
+      } catch (err) {
+        console.error("Error fetching cells:", err);
+      }
+    }
+
+    document.getElementById("search").addEventListener("keyup", function () {
+      const value = this.value.toLowerCase();
+      const rows = document.querySelectorAll("#cellTable tbody tr");
+      rows.forEach(row => {
+        row.style.display = row.innerText.toLowerCase().includes(value) ? "" : "none";
+      });
+    });
+
+    fetchCells();
+  </script>
+</body>
+</html>
