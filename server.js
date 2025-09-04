@@ -433,6 +433,46 @@ app.post("/api/cell/register", upload.single("logo"), async (req, res) => {
   }
 });
 
+// CELL LOGIN
+app.post("/api/cell/login", async (req, res) => {
+  try {
+    const { identifier, password } = req.body; 
+    // identifier can be name or email
+
+    const cell = await Cell.findOne({
+      $or: [{ name: identifier }, { email: identifier }],
+    })
+      .populate("campus", "name")   // get campus name
+      .populate("district", "name"); // get district name
+
+    if (!cell) {
+      return res.status(404).json({ success: false, message: "Cell not found" });
+    }
+
+    if (cell.password !== password) {
+      return res.status(400).json({ success: false, message: "Invalid credentials" });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Login successful",
+      cell: {
+        id: cell._id,
+        name: cell.name,
+        leader: cell.leader,
+        phone: cell.phone,
+        email: cell.email,
+        campus: cell.campus?.name,
+        district: cell.district?.name,
+        logo: cell.logo,
+      },
+    });
+  } catch (err) {
+    console.error("Cell login error:", err.message);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
 // ✅ Fetch all cells
 app.get("/api/cell", async (req, res) => {
   try {
