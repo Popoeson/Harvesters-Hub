@@ -253,6 +253,19 @@ app.post("/api/campus/login", async (req, res) => {
   }
 });
 
+// --------------------------------------------------
+// Get All Campuses
+// --------------------------------------------------
+app.get("/api/campus", async (req, res) => {
+  try {
+    const campuses = await Campus.find().sort({ createdAt: -1 });
+    res.status(200).json({ success: true, data: campuses });
+  } catch (error) {
+    console.error("Error fetching campuses:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
 // Global error handler – always return JSON
 app.use((err, req, res, next) => {
   console.error("Unhandled server error:", err);
