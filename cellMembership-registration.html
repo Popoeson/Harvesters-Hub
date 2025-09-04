@@ -3,145 +3,109 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cell Membership Registration</title>
+  <title>Member Registration</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f4f4f9;
-      margin: 0;
-      padding: 0;
-    }
-    
-     .header {
+      background: #f4f4f4;
       display: flex;
       justify-content: center;
       align-items: center;
-      background: #fff;
-      padding: 12px 16px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      position: sticky;
-      top: 0;
-      z-index: 1000;
+      height: 100vh;
     }
-
-    .header img {
-      height: 30px;
-    }
-
-    .container {
-      max-width: 600px;
-      margin: 40px auto;
-      background: #fff;
+    .form-container {
+      background: white;
       padding: 20px;
       border-radius: 10px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      width: 400px;
     }
-
     h2 {
       text-align: center;
-      color: #333;
+      margin-bottom: 20px;
     }
-
     label {
-      font-weight: bold;
       display: block;
-      margin-top: 15px;
+      margin-top: 10px;
+      font-weight: bold;
     }
-
     input, select, button {
       width: 100%;
-      padding: 10px;
+      padding: 8px;
       margin-top: 5px;
+      border-radius: 5px;
       border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 14px;
     }
-
     button {
       background: green;
       color: white;
       border: none;
       cursor: pointer;
-      margin-top: 20px;
+      font-weight: bold;
     }
-
     button:hover {
       background: darkgreen;
     }
-
-    .district-cell {
+    .cell-row {
       display: flex;
       align-items: center;
-      gap: 10px;
+      justify-content: space-between;
+      margin-top: 10px;
     }
-
+    .cell-row button {
+      width: auto;
+      margin-left: 10px;
+      padding: 6px 12px;
+    }
     #cellsList {
-      margin-top: 20px;
+      margin-top: 15px;
       display: none;
     }
-
     .cell-card {
       display: flex;
       justify-content: space-between;
-      align-items: center;
       background: #f9f9f9;
-      padding: 10px;
-      margin-bottom: 10px;
+      padding: 8px;
       border: 1px solid #ddd;
       border-radius: 6px;
+      margin-bottom: 8px;
     }
-
-    .cell-card button {
-      width: auto;
-      background: #007bff;
-    }
-
-    .cell-card button:hover {
-      background: #0056b3;
-    }
-
     #chosenCell {
       margin-top: 10px;
-      padding: 10px;
-      background: #eafbea;
-      border: 1px solid #8bc34a;
-      border-radius: 6px;
+      font-weight: bold;
+      color: darkblue;
       display: none;
     }
   </style>
 </head>
 <body>
-    
-    <!-- Header -->
-  <div class="header">
-    <img src="uploads/harvesters.png" alt="Logo">
-  </div>
-
-  <div class="container">
+  <div class="form-container">
     <h2>Cell Membership Registration</h2>
     <form id="memberForm">
-      <label>Full Name</label>
+      <label for="fullName">Full Name</label>
       <input type="text" id="fullName" required>
 
-      <label>Address</label>
+      <label for="address">Address</label>
       <input type="text" id="address" required>
 
-      <label>Phone Number</label>
+      <label for="phone">Phone</label>
       <input type="text" id="phone" required>
 
-      <label>Email</label>
+      <label for="email">Email</label>
       <input type="email" id="email" required>
 
-      <label>Choose District</label>
-      <div class="district-cell">
-        <select id="districtSelect" required>
-          <option value="">Select District</option>
-        </select>
-        <button type="button" id="viewCellsBtn">View Cells Location</button>
+      <label for="districtSelect">District</label>
+      <select id="districtSelect" required>
+        <option value="">Select District</option>
+      </select>
+
+      <!-- New Cell Row -->
+      <div class="cell-row">
+        <label for="cell">Cell</label>
+        <button type="button" id="viewCellsBtn">Choose Your Cell Location</button>
       </div>
 
       <div id="cellsList"></div>
-
       <div id="chosenCell"></div>
 
       <button type="submit">Register Member</button>
@@ -149,18 +113,20 @@
   </div>
 
   <script>
-    const backendUrl = "https://harvesters-hub-fbgo.onrender.com"; // Replace with your backend
+    const backendUrl = "https://harvesters-hub-fbgo.onrender.com"; // Replace if needed
 
     const districtSelect = document.getElementById("districtSelect");
     const cellsList = document.getElementById("cellsList");
     const chosenCellDiv = document.getElementById("chosenCell");
     let selectedCell = null;
 
-    // Load districts into dropdown
+    // Load districts
     async function loadDistricts() {
       try {
-        const res = await fetch(`${backendUrl}/api/districts`);
-        const districts = await res.json();
+        const res = await fetch(`${backendUrl}/api/district`);
+        const data = await res.json();
+        const districts = Array.isArray(data) ? data : data.data;
+
         districts.forEach(d => {
           const option = document.createElement("option");
           option.value = d._id;
@@ -172,7 +138,7 @@
       }
     }
 
-    // View cells under selected district
+    // View cells
     document.getElementById("viewCellsBtn").addEventListener("click", async () => {
       const districtId = districtSelect.value;
       if (!districtId) {
@@ -182,10 +148,11 @@
 
       try {
         const res = await fetch(`${backendUrl}/api/cells/by-district/${districtId}`);
-        const cells = await res.json();
+        const data = await res.json();
+        const cells = Array.isArray(data) ? data : data.data;
 
         cellsList.innerHTML = "<h3>Available Cells</h3>";
-        if (cells.length === 0) {
+        if (!cells || cells.length === 0) {
           cellsList.innerHTML += "<p>No cells found for this district.</p>";
         } else {
           cells.forEach(cell => {
@@ -212,7 +179,7 @@
       chosenCellDiv.style.display = "block";
     };
 
-    // Handle form submission
+    // Submit form
     document.getElementById("memberForm").addEventListener("submit", async (e) => {
       e.preventDefault();
       if (!selectedCell) {
@@ -253,6 +220,5 @@
 
     loadDistricts();
   </script>
-
 </body>
-</html>
+  </html>
