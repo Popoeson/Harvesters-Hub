@@ -73,9 +73,20 @@ const campusSchema = new mongoose.Schema({
   password: { type: String, required: true }, // stored as plain text now
 }, { timestamps: true });
 
+
+const districtSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  campus: { type: mongoose.Schema.Types.ObjectId, ref: "Campus", required: true }, // linked campus
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true }, // stored plain for now
+  logo: { type: String }
+}, { timestamps: true });
+
+
 // ---------- Mongoose Models ---------
 const Image = mongoose.model("Image", ImageSchema);
 const Campus = mongoose.model("Campus", campusSchema);
+const District = mongoose.model("District", districtSchema);
 // ---------- Routes ----------
 
 // Health probe
@@ -263,6 +274,92 @@ app.get("/api/campus", async (req, res) => {
   } catch (error) {
     console.error("Error fetching campuses:", error);
     res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+
+// --------------------------------------------------
+// Register District
+// --------------------------------------------------
+app.post("/api/district/register", upload.single("logo"), async (req, res) => {
+  try {
+    const { name, campus, email, password } = req.body;
+
+    if (!name || !campus || !email || !password) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    // Check if campus exists
+    const campusExists = await Campus.findById(campus);
+    if (!campusExists) {
+      return res.status(400).json({ message: "Invalid campus ID" });
+    }
+
+    // Check if district email already exists
+    const existing = await District.findOne({ email });
+    if (existing) {
+      return res.status(400).json({ message: "District already exists" });
+    }
+
+    // Handle logo upload
+    let logoUrl = "";
+    if (req.file && req.file.path) {
+      logoUrl = req.file.path;
+    }
+
+    const newDistrict = new District({
+      name,
+      campus,
+      email,
+      password, // plain text
+      logo: logoUrl
+    });
+
+    await newDistrict.save();
+
+    res.status(201).json({
+      success: true,
+      message: "District registered successfully",
+      district: newDistrict
+    });
+  } catch (error) {
+    console.error("District registration error:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
+// --------------------------------------------------
+// Login District
+// --------------------------------------------------
+app.post("/api/district/login", async (req, res) => {
+  try {
+    const { identifier, password } = req.body; // identifier = name OR email
+
+    if (!identifier || !password) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    // Find district by email OR name
+    const district = await District.findOne({
+      $or: [{ email: identifier }, { name: identifier }]
+    }).populate("campus", "name email");
+
+    if (!district) {
+      return res.status(404).json({ message: "District not found" });
+    }
+
+    if (district.password !== password) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Login successful",
+      district
+    });
+  } catch (error) {
+    console.error("District login error:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 });
 
