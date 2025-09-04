@@ -27,16 +27,18 @@
     .header img {
       height: 30px;
     }
-
+    
     .dashboard {
-      max-width: 1000px;
-      margin: 30px auto;
-      padding: 20px;
-      background: #fff;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    }
+  width: 100%;              /* take full width */
+  margin: 0;                /* remove auto-centering */
+  padding: 20px;
+  background: #fff;
+  border-radius: 0;         /* optional: remove rounded corners if you want flush edges */
+  box-shadow: none;         /* optional: cleaner look without shadows */
+  min-height: 100vh;        /* stretch full screen height */
+}
 
+  
     h2 {
       text-align: center;
       margin-bottom: 20px;
@@ -55,6 +57,8 @@
       border: 1px solid #ccc;
       border-radius: 6px;
     }
+    
+    
 
     table {
       width: 100%;
@@ -63,7 +67,7 @@
     }
 
     table, th, td {
-      border: 1px solid #ddd;
+      border: 1px solid #e0e0e0;
     }
 
     th, td {
@@ -165,4 +169,4 @@
     fetchDistricts();
   </script>
 </body>
-</html>
+  </html>
