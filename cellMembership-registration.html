@@ -13,6 +13,21 @@
       align-items: center;
       height: 100vh;
     }
+    .header {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #fff;
+      padding: 12px 16px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .header img {
+      height: 30px;
+    }
     .form-container {
       background: white;
       padding: 20px;
@@ -79,6 +94,12 @@
   </style>
 </head>
 <body>
+
+    <!-- Header -->
+  <div class="header">
+    <img src="uploads/harvesters.png" alt="Logo">
+  </div>
+  
   <div class="form-container">
     <h2>Cell Membership Registration</h2>
     <form id="memberForm">
