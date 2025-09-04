@@ -398,7 +398,7 @@ app.get("/api/district", async (req, res) => {
 // ✅ Register Cell
 app.post("/api/cell/register", upload.single("logo"), async (req, res) => {
   try {
-    const { name, campus, district, leader, phone, email, password } = req.body;
+    const { name, campus, district, address, leader, phone, email, password } = req.body;
 
     if (!name || !campus || !district || !address || !leader || !phone || !email || !password) {
       return res.status(400).json({ success: false, message: "All fields are required" });
