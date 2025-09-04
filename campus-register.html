@@ -115,6 +115,11 @@
       </div>
 
       <div class="form-group">
+        <label for="password">Campus Password</label>
+        <input type="password" id="password" name="password" required>
+      </div>
+
+      <div class="form-group">
         <label for="logo">Campus Logo</label>
         <input type="file" id="logo" name="logo" accept="image/*" required>
       </div>
@@ -144,8 +149,12 @@
 
         if (data.success) {
           msgBox.style.color = "green";
-          msgBox.textContent = "✅ Campus registered successfully!";
+          msgBox.textContent = "✅ Campus registered successfully! Redirecting to login...";
           form.reset();
+
+          setTimeout(() => {
+            window.location.href = "campus-login.html"; // 🔑 redirect to login page
+          }, 2000);
         } else {
           msgBox.style.color = "red";
           msgBox.textContent = "❌ " + (data.message || "Failed to register campus.");
