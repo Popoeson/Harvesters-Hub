@@ -4,10 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cell Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
   <style>
-   body {
+    body {
       font-family: Arial, sans-serif;
-      background: #fff;
+      background: #f9f9f9;
       margin: 0;
       padding: 0;
     }
@@ -27,18 +29,13 @@
     .header img {
       height: 30px;
     }
-    
-    .dashboard {
-  width: 100%;              /* take full width */
-  margin: 0;                /* remove auto-centering */
-  padding: 20px;
-  background: #fff;
-  border-radius: 0;         /* optional: remove rounded corners if you want flush edges */
-  box-shadow: none;         /* optional: cleaner look without shadows */
-  min-height: 100vh;        /* stretch full screen height */
-}
 
-  
+    .dashboard {
+      max-width: 1200px;
+      margin: 30px auto;
+      padding: 20px;
+    }
+
     h2 {
       text-align: center;
       margin-bottom: 20px;
@@ -46,121 +43,153 @@
     }
 
     .search-box {
-      margin-bottom: 15px;
+      margin-bottom: 20px;
       display: flex;
-      justify-content: flex-end;
+      justify-content: center;
     }
 
     .search-box input {
-      padding: 8px;
-      width: 250px;
+      padding: 10px;
+      width: 300px;
       border: 1px solid #ccc;
-      border-radius: 6px;
-    }
-    
-    
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 15px;
+      border-radius: 8px;
+      font-size: 14px;
     }
 
-    table, th, td {
-      border: 1px solid #e0e0e0;
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
     }
 
-    th, td {
-      padding: 12px;
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       text-align: center;
+      transition: transform 0.2s;
     }
 
-    th {
-      background: #f2f2f2;
-      font-weight: bold;
+    .card:hover {
+      transform: translateY(-4px);
     }
 
-    tr:hover {
-      background: #f9f9f9;
-    }
-
-    img.logo {
-      width: 40px;
-      height: 40px;
+    .card img {
+      max-width: 100%;
+      height: 60px;
       object-fit: cover;
-      border-radius: 50%;
+      border-radius: 10%;
+      margin-bottom: 10px;
+    }
+
+    .card h3 {
+      margin: 5px 0;
+      color: #333;
+      font-size: 18px;
+    }
+
+    .card p {
+      margin: 4px 0;
+      font-size: 14px;
+      color: #555;
+    }
+
+    .card .leader {
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    .card .email {
+      margin-top: 8px;
+      font-size: 13px;
+      color: #0073e6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
     }
   </style>
 </head>
 <body>
+  <!-- Header -->
   <div class="header">
     <img src="uploads/harvesters.png" alt="Logo">
   </div>
 
   <div class="dashboard">
-    <h2>Registered Cells</h2>
+    <h2>📋 Cell Dashboard</h2>
     <div class="search-box">
-      <input type="text" id="search" placeholder="Search cells...">
+      <input type="text" id="searchInput" placeholder="Search by cell, campus, district, or leader...">
     </div>
-    <table id="cellTable">
-      <thead>
-        <tr>
-          <th>Serial No.</th>
-          <th>Logo</th>
-          <th>Cell Name</th>
-          <th>Campus</th>
-          <th>District</th>
-          <th>Leader</th>
-          <th>Phone</th>
-          <th>Email</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+
+    <div class="grid" id="cellGrid">
+      <!-- Cards will be injected here -->
+    </div>
   </div>
 
   <script>
     const API_BASE = "https://harvesters-hub-fbgo.onrender.com/api";
+    const grid = document.getElementById("cellGrid");
+    const searchInput = document.getElementById("searchInput");
 
-    async function fetchCells() {
+    let cellsData = [];
+
+    // Fetch cells
+    async function loadCells() {
       try {
         const res = await fetch(`${API_BASE}/cell`);
         const data = await res.json();
-
         if (data.success) {
-          const tbody = document.querySelector("#cellTable tbody");
-          tbody.innerHTML = "";
-
-          data.data.forEach((cell, index) => {
-            const row = `
-              <tr>
-                <td>${index + 1}</td>
-                <td><img src="${cell.logo}" class="logo" alt="logo"></td>
-                <td>${cell.name}</td>
-                <td>${cell.campus?.name || "N/A"}</td>
-                <td>${cell.district?.name || "N/A"}</td>
-                <td>${cell.leader}</td>
-                <td>${cell.phone}</td>
-                <td>${cell.email}</td>
-              </tr>
-            `;
-            tbody.innerHTML += row;
-          });
+          cellsData = data.data;
+          renderCells(cellsData);
         }
       } catch (err) {
-        console.error("Error fetching cells:", err);
+        console.error("Error loading cells:", err);
       }
     }
 
-    document.getElementById("search").addEventListener("keyup", function () {
-      const value = this.value.toLowerCase();
-      const rows = document.querySelectorAll("#cellTable tbody tr");
-      rows.forEach(row => {
-        row.style.display = row.innerText.toLowerCase().includes(value) ? "" : "none";
+    // Render cells as cards
+    function renderCells(cells) {
+      grid.innerHTML = "";
+      if (cells.length === 0) {
+        grid.innerHTML = "<p style='text-align:center; grid-column:1/-1;'>No cells found.</p>";
+        return;
+      }
+
+      cells.forEach(cell => {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <img src="${cell.logo}" alt="Logo">
+          <h3>${cell.name}</h3>
+          <p>🏫 Campus: ${cell.campus?.name || "N/A"}</p>
+          <p>📍 District: ${cell.district?.name || "N/A"}</p>
+          <p>📌 Address: ${cell.address || "N/A"}</p>
+          <p class="leader">👤 Leader: ${cell.leader || "N/A"} (${cell.phone || "N/A"})</p>
+          <p class="email"><i class="fa fa-envelope"></i> ${cell.email || "N/A"}</p>
+        `;
+        grid.appendChild(card);
       });
+    }
+
+    // Search filter
+    searchInput.addEventListener("input", () => {
+      const term = searchInput.value.toLowerCase();
+      const filtered = cellsData.filter(cell =>
+        cell.name.toLowerCase().includes(term) ||
+        (cell.campus?.name || "").toLowerCase().includes(term) ||
+        (cell.district?.name || "").toLowerCase().includes(term) ||
+        (cell.leader || "").toLowerCase().includes(term)
+      );
+      renderCells(filtered);
     });
 
-    fetchCells();
+    // Init
+    loadCells();
   </script>
 </body>
-</html>
+  </html>
