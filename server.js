@@ -554,7 +554,7 @@ app.get("/api/cells/by-district/:districtId", async (req, res) => {
 });
 
 // ======================
-// Fetch All Members (optional for dashboard)
+// Fetch All Members 
 // ======================
 app.get("/api/members", async (req, res) => {
   try {
@@ -568,7 +568,6 @@ app.get("/api/members", async (req, res) => {
   }
 });
 
-module.exports = app;
 // Global error handler – always return JSON
 app.use((err, req, res, next) => {
   console.error("Unhandled server error:", err);
