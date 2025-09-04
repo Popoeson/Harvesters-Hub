@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>District Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -27,18 +28,13 @@
     .header img {
       height: 30px;
     }
-    
-    .dashboard {
-  width: 100%;              /* take full width */
-  margin: 0;                /* remove auto-centering */
-  padding: 20px;
-  background: #fff;
-  border-radius: 0;         /* optional: remove rounded corners if you want flush edges */
-  box-shadow: none;         /* optional: cleaner look without shadows */
-  min-height: 100vh;        /* stretch full screen height */
-}
 
-  
+    .dashboard {
+      max-width: 1200px;
+      margin: 30px auto;
+      padding: 20px;
+    }
+
     h2 {
       text-align: center;
       margin-bottom: 20px;
@@ -46,127 +42,143 @@
     }
 
     .search-box {
-      margin-bottom: 15px;
+      margin-bottom: 20px;
       display: flex;
-      justify-content: flex-end;
+      justify-content: center;
     }
 
     .search-box input {
-      padding: 8px;
-      width: 250px;
+      padding: 10px;
+      width: 300px;
       border: 1px solid #ccc;
-      border-radius: 6px;
-    }
-    
-    
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 15px;
+      border-radius: 8px;
+      font-size: 14px;
     }
 
-    table, th, td {
-      border: 1px solid #e0e0e0;
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 20px;
     }
 
-    th, td {
-      padding: 12px;
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       text-align: center;
+      transition: transform 0.2s;
     }
 
-    th {
-      background: #f2f2f2;
-      font-weight: bold;
+    .card:hover {
+      transform: translateY(-4px);
     }
 
-    tr:hover {
-      background: #f9f9f9;
-    }
-
-    img.logo {
-      width: 40px;
-      height: 40px;
+    .card img {
+      width: 60px;
+      height: 60px;
       object-fit: cover;
       border-radius: 50%;
+      margin-bottom: 10px;
+    }
+
+    .card h3 {
+      margin: 5px 0;
+      color: #333;
+      font-size: 18px;
+    }
+
+    .card p {
+      margin: 4px 0;
+      font-size: 14px;
+      color: #555;
+    }
+
+    .card .email {
+      margin-top: 8px;
+      font-size: 13px;
+      color: #0073e6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
     }
   </style>
 </head>
 <body>
-
+  <!-- Header -->
   <div class="header">
     <img src="uploads/harvesters.png" alt="Logo">
   </div>
 
   <div class="dashboard">
-    <h2>Registered Districts</h2>
-
+    <h2>🏘 Registered Districts</h2>
     <div class="search-box">
-      <input type="text" id="search" placeholder="Search by district or campus...">
+      <input type="text" id="searchInput" placeholder="Search by district or campus...">
     </div>
 
-    <table>
-      <thead>
-        <tr>
-          <th>Serial No.</th>
-          <th>Logo</th>
-          <th>District</th>
-          <th>Campus</th>
-          <th>Email</th>
-        </tr>
-      </thead>
-      <tbody id="districtTableBody">
-        <!-- Data will be injected here -->
-      </tbody>
-    </table>
+    <div class="grid" id="districtGrid">
+      <!-- Cards will be injected here -->
+    </div>
   </div>
 
   <script>
     const API_BASE = "https://harvesters-hub-fbgo.onrender.com/api";
+    const grid = document.getElementById("districtGrid");
+    const searchInput = document.getElementById("searchInput");
 
+    let districtData = [];
+
+    // Fetch districts
     async function fetchDistricts() {
       try {
         const res = await fetch(`${API_BASE}/district`);
         const data = await res.json();
-
         if (data.success) {
-          renderTable(data.data);
-          setupSearch(data.data);
+          districtData = data.data;
+          renderDistricts(districtData);
         }
       } catch (err) {
         console.error("Error fetching districts:", err);
       }
     }
 
-    function renderTable(districts) {
-      const tbody = document.getElementById("districtTableBody");
-      tbody.innerHTML = "";
-      districts.forEach((district, index) => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${index + 1}</td>
-          <td><img src="${district.logo}" alt="Logo" class="logo"></td>
-          <td>${district.name}</td>
-          <td>${district.campus?.name || "N/A"}</td>
-          <td>${district.email}</td>
+    // Render districts as cards
+    function renderDistricts(districts) {
+      grid.innerHTML = "";
+      if (districts.length === 0) {
+        grid.innerHTML = "<p style='text-align:center; grid-column:1/-1;'>No districts found.</p>";
+        return;
+      }
+
+      districts.forEach(district => {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <img src="${district.logo}" alt="Logo">
+          <h3>${district.name}</h3>
+          <p>🏫 Campus: ${district.campus?.name || "N/A"}</p>
+          <p class="email"><i class="fa fa-envelope"></i> ${district.email || "N/A"}</p>
         `;
-        tbody.appendChild(tr);
+        grid.appendChild(card);
       });
     }
 
-    function setupSearch(districts) {
-      const searchInput = document.getElementById("search");
-      searchInput.addEventListener("input", () => {
-        const query = searchInput.value.toLowerCase();
-        const filtered = districts.filter(d =>
-          d.name.toLowerCase().includes(query) ||
-          (d.campus?.name || "").toLowerCase().includes(query)
-        );
-        renderTable(filtered);
-      });
-    }
+    // Search filter
+    searchInput.addEventListener("input", () => {
+      const term = searchInput.value.toLowerCase();
+      const filtered = districtData.filter(d =>
+        d.name.toLowerCase().includes(term) ||
+        (d.campus?.name || "").toLowerCase().includes(term)
+      );
+      renderDistricts(filtered);
+    });
 
+    // Init
     fetchDistricts();
   </script>
 </body>
-  </html>
+</html>
