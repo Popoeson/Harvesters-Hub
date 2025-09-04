@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>District Registration</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+        /* Header */
+    .header {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #fff;
+      padding: 12px 16px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .header img {
+      height: 30px;
+    }
+    .container {
+      background: #fff;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      width: 400px;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    button {
+      margin-top: 20px;
+      width: 100%;
+      padding: 12px;
+      background: #222;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #444;
+    }
+  </style>
+</head>
+<body>
+  
+  <div class="container">
+      
+         <!-- Header -->
+     <div class="header">
+    <img src="uploads/harvesters.png" alt="Logo">
+  </div>
+  
+    <h2>Register District</h2>
+    <form id="districtForm" enctype="multipart/form-data">
+      <label for="name">District Name</label>
+      <input type="text" id="name" name="name" required>
+
+      <label for="campus">District Campus</label>
+      <select id="campus" name="campus" required>
+        <option value="">-- Select Campus --</option>
+      </select>
+
+      <label for="email">District Email</label>
+      <input type="email" id="email" name="email" required>
+
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" required>
+
+      <label for="logo">District Logo</label>
+      <input type="file" id="logo" name="logo" accept="image/*" required>
+
+      <button type="submit">Register</button>
+    </form>
+  </div>
+
+  <script>
+    const API_BASE = "https://harvesters-hub-fbgo.onrender.com/api";
+
+    // Populate campuses dropdown
+    async function loadCampuses() {
+      try {
+        const res = await fetch(`${API_BASE}/campus`);
+        const data = await res.json();
+
+        if (data.success) {
+          const campusSelect = document.getElementById("campus");
+          data.data.forEach(campus => {
+            const option = document.createElement("option");
+            option.value = campus._id;
+            option.textContent = campus.name;
+            campusSelect.appendChild(option);
+          });
+        }
+      } catch (err) {
+        console.error("Error loading campuses:", err);
+      }
+    }
+
+    // Handle district registration
+    document.getElementById("districtForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+
+      try {
+        const res = await fetch(`${API_BASE}/district/register`, {
+          method: "POST",
+          body: formData
+        });
+        const result = await res.json();
+
+        if (res.ok) {
+          alert("✅ District registered successfully!");
+          e.target.reset();
+        } else {
+          alert("❌ " + (result.message || "Registration failed"));
+        }
+      } catch (err) {
+        console.error("Error:", err);
+        alert("❌ Server error");
+      }
+    });
+
+    // Init
+    loadCampuses();
+  </script>
+</body>
+</html>
