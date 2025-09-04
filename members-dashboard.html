@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Members Dashboard</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .search-container {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .search-container input {
+      width: 300px;
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    th, td {
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+      font-size: 14px;
+    }
+
+    th {
+      background: #222;
+      color: #fff;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    tr:hover {
+      background: #f1f1f1;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #fff;
+      padding: 12px 16px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      margin-bottom: 20px;
+    }
+
+    .header img {
+      height: 30px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div class="header">
+    <img src="uploads/harvesters.png" alt="Logo">
+  </div>
+
+  <h1>Registered Members</h1>
+
+  <div class="search-container">
+    <input 
+      type="text" 
+      id="searchInput" 
+      placeholder="Search by name, email, phone, district or cell..."
+      onkeyup="filterMembers()"
+    />
+  </div>
+
+  <table id="membersTable">
+    <thead>
+      <tr>
+        <th>S/N</th>
+        <th>Full Name</th>
+        <th>Email</th>
+        <th>Phone</th>
+        <th>Address</th>
+        <th>District</th>
+        <th>Cell</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Data will be injected here -->
+    </tbody>
+  </table>
+
+  <script>
+    const API_URL = "https://harvesters-hub-fbgo.onrender.com/api/members"; // adjust if needed
+    let members = [];
+
+    async function fetchMembers() {
+      try {
+        const res = await fetch(API_URL);
+        const data = await res.json();
+
+        if (Array.isArray(data)) {
+          members = data;
+          renderTable(members);
+        } else {
+          alert("Failed to load members.");
+        }
+      } catch (error) {
+        console.error("Error fetching members:", error);
+      }
+    }
+
+    function renderTable(list) {
+      const tbody = document.querySelector("#membersTable tbody");
+      tbody.innerHTML = "";
+
+      list.forEach((member, index) => {
+        const row = `
+          <tr>
+            <td>${index + 1}</td>
+            <td>${member.fullName}</td>
+            <td>${member.email}</td>
+            <td>${member.phone}</td>
+            <td>${member.address}</td>
+            <td>${member.district?.name || "N/A"}</td>
+            <td>${member.cell?.name || "N/A"}</td>
+          </tr>
+        `;
+        tbody.insertAdjacentHTML("beforeend", row);
+      });
+    }
+
+    function filterMembers() {
+      const query = document.getElementById("searchInput").value.toLowerCase();
+      const filtered = members.filter(m =>
+        m.fullName.toLowerCase().includes(query) ||
+        m.email.toLowerCase().includes(query) ||
+        m.phone.toLowerCase().includes(query) ||
+        m.address.toLowerCase().includes(query) ||
+        (m.district?.name || "").toLowerCase().includes(query) ||
+        (m.cell?.name || "").toLowerCase().includes(query)
+      );
+      renderTable(filtered);
+    }
+
+    // Run on load
+    fetchMembers();
+  </script>
+</body>
+</html>
