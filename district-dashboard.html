@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>District Dashboard</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f9f9f9;
+      margin: 0;
+      padding: 0;
+    }
+
+    .header {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #fff;
+      padding: 12px 16px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .header img {
+      height: 30px;
+    }
+
+    .dashboard {
+      max-width: 1000px;
+      margin: 30px auto;
+      padding: 20px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    .search-box {
+      margin-bottom: 15px;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .search-box input {
+      padding: 8px;
+      width: 250px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+
+    table, th, td {
+      border: 1px solid #ddd;
+    }
+
+    th, td {
+      padding: 12px;
+      text-align: center;
+    }
+
+    th {
+      background: #f2f2f2;
+      font-weight: bold;
+    }
+
+    tr:hover {
+      background: #f9f9f9;
+    }
+
+    img.logo {
+      width: 40px;
+      height: 40px;
+      object-fit: cover;
+      border-radius: 50%;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <img src="uploads/harvesters.png" alt="Logo">
+  </div>
+
+  <div class="dashboard">
+    <h2>Registered Districts</h2>
+
+    <div class="search-box">
+      <input type="text" id="search" placeholder="Search by district or campus...">
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Serial No.</th>
+          <th>Logo</th>
+          <th>District</th>
+          <th>Campus</th>
+          <th>Email</th>
+        </tr>
+      </thead>
+      <tbody id="districtTableBody">
+        <!-- Data will be injected here -->
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    const API_BASE = "https://harvesters-hub-fbgo.onrender.com/api";
+
+    async function fetchDistricts() {
+      try {
+        const res = await fetch(`${API_BASE}/district`);
+        const data = await res.json();
+
+        if (data.success) {
+          renderTable(data.data);
+          setupSearch(data.data);
+        }
+      } catch (err) {
+        console.error("Error fetching districts:", err);
+      }
+    }
+
+    function renderTable(districts) {
+      const tbody = document.getElementById("districtTableBody");
+      tbody.innerHTML = "";
+      districts.forEach((district, index) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${index + 1}</td>
+          <td><img src="${district.logo}" alt="Logo" class="logo"></td>
+          <td>${district.name}</td>
+          <td>${district.campus?.name || "N/A"}</td>
+          <td>${district.email}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function setupSearch(districts) {
+      const searchInput = document.getElementById("search");
+      searchInput.addEventListener("input", () => {
+        const query = searchInput.value.toLowerCase();
+        const filtered = districts.filter(d =>
+          d.name.toLowerCase().includes(query) ||
+          (d.campus?.name || "").toLowerCase().includes(query)
+        );
+        renderTable(filtered);
+      });
+    }
+
+    fetchDistricts();
+  </script>
+</body>
+</html>
