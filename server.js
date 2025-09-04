@@ -363,6 +363,25 @@ app.post("/api/district/login", async (req, res) => {
   }
 });
 
+// --------------------------------------------------
+// Get all Districts
+// --------------------------------------------------
+app.get("/api/district", async (req, res) => {
+  try {
+    const districts = await District.find()
+      .populate("campus", "name email") // populate campus name & email only
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      data: districts,
+    });
+  } catch (error) {
+    console.error("Error fetching districts:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
 // Global error handler – always return JSON
 app.use((err, req, res, next) => {
   console.error("Unhandled server error:", err);
