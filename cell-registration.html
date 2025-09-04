@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register Cell</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f9f9f9;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #fff;
+      padding: 12px 16px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .header img {
+      height: 30px;
+    }
+
+    /* Form Container */
+    .form-container {
+      max-width: 500px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    .form-container h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: bold;
+      color: #444;
+    }
+
+    .form-group input, 
+    .form-group select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background: green;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: darkgreen;
+    }
+
+    .message {
+      text-align: center;
+      margin-top: 15px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div class="header">
+    <img src="uploads/harvesters.png" alt="Logo">
+  </div>
+
+  <!-- Form -->
+  <div class="form-container">
+    <h2>Register Cell</h2>
+    <form id="cellForm" enctype="multipart/form-data">
+      <div class="form-group">
+        <label for="name">Cell Name</label>
+        <input type="text" id="name" name="name" required>
+      </div>
+
+      <div class="form-group">
+        <label for="campus">Campus</label>
+        <select id="campus" name="campus" required>
+          <option value="">-- Select Campus --</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="district">District</label>
+        <select id="district" name="district" required>
+          <option value="">-- Select District --</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="leader">Cell Leader</label>
+        <input type="text" id="leader" name="leader" required>
+      </div>
+
+      <div class="form-group">
+        <label for="email">Cell Email</label>
+        <input type="email" id="email" name="email" required>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Cell Password</label>
+        <input type="password" id="password" name="password" required>
+      </div>
+
+      <div class="form-group">
+        <label for="logo">Cell Logo</label>
+        <input type="file" id="logo" name="logo" accept="image/*" required>
+      </div>
+
+      <button type="submit">Register</button>
+    </form>
+    <div class="message" id="message"></div>
+  </div>
+
+  <script>
+    const API_BASE = "https://harvesters-hub-fbgo.onrender.com/api";
+
+    // Load campuses
+    async function loadCampuses() {
+      try {
+        const res = await fetch(`${API_BASE}/campus`);
+        const data = await res.json();
+        if (data.success) {
+          const campusSelect = document.getElementById("campus");
+          data.data.forEach(campus => {
+            const option = document.createElement("option");
+            option.value = campus._id;
+            option.textContent = campus.name;
+            campusSelect.appendChild(option);
+          });
+        }
+      } catch (err) {
+        console.error("Error loading campuses:", err);
+      }
+    }
+
+    // Load districts when campus changes
+    document.getElementById("campus").addEventListener("change", async (e) => {
+      const campusId = e.target.value;
+      const districtSelect = document.getElementById("district");
+      districtSelect.innerHTML = '<option value="">-- Select District --</option>';
+
+      if (!campusId) return;
+
+      try {
+        const res = await fetch(`${API_BASE}/districts?campus=${campusId}`);
+        const data = await res.json();
+        if (data.success) {
+          data.data.forEach(district => {
+            const option = document.createElement("option");
+            option.value = district._id;
+            option.textContent = district.name;
+            districtSelect.appendChild(option);
+          });
+        }
+      } catch (err) {
+        console.error("Error loading districts:", err);
+      }
+    });
+
+    // Handle form submit
+    document.getElementById("cellForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+
+      try {
+        const res = await fetch(`${API_BASE}/cell/register`, {
+          method: "POST",
+          body: formData
+        });
+        const result = await res.json();
+
+        if (res.ok && result.success) {
+          alert("✅ Cell registered successfully!");
+          e.target.reset();
+          document.getElementById("district").innerHTML = '<option value="">-- Select District --</option>';
+        } else {
+          alert("❌ " + (result.message || "Registration failed"));
+        }
+      } catch (err) {
+        console.error("Error submitting form:", err);
+        alert("❌ Server error");
+      }
+    });
+
+    // Init
+    loadCampuses();
+  </script>
+</body>
+</html>
