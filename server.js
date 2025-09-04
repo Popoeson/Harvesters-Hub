@@ -95,11 +95,22 @@ const cellSchema = new mongoose.Schema({
   dateRegistered: { type: Date, default: Date.now },
 });
 
+const memberSchema = new mongoose.Schema({
+  fullName: { type: String, required: true },
+  address: { type: String, required: true },
+  phone: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  district: { type: mongoose.Schema.Types.ObjectId, ref: "District", required: true },
+  cell: { type: mongoose.Schema.Types.ObjectId, ref: "Cell", required: true },
+  createdAt: { type: Date, default: Date.now }
+});
+
 // ---------- Mongoose Models ---------
 const Image = mongoose.model("Image", ImageSchema);
 const Campus = mongoose.model("Campus", campusSchema);
 const District = mongoose.model("District", districtSchema);
 const Cell = mongoose.model("Cell",cellSchema);
+const Member = mongoose.model("Member",memberSchema);
 // ---------- Routes ----------
 
 // Health probe
@@ -502,6 +513,62 @@ app.get("/api/districts", async (req, res) => {
   }
 });
 
+// ======================
+// Register a Member
+// ======================
+app.post("/api/members/register", async (req, res) => {
+  try {
+    const { fullName, address, phone, email, district, cell } = req.body;
+
+    if (!fullName || !address || !phone || !email || !district || !cell) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    // Check if email already exists
+    const existing = await Member.findOne({ email });
+    if (existing) {
+      return res.status(400).json({ message: "Email already registered" });
+    }
+
+    const member = new Member({ fullName, address, phone, email, district, cell });
+    await member.save();
+
+    res.status(201).json({ message: "Member registered successfully", member });
+  } catch (err) {
+    console.error("Error registering member:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// ======================
+// Fetch Cells by District
+// ======================
+app.get("/api/cells/by-district/:districtId", async (req, res) => {
+  try {
+    const cells = await Cell.find({ district: req.params.districtId });
+    res.json(cells);
+  } catch (err) {
+    console.error("Error fetching cells:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// ======================
+// Fetch All Members (optional for dashboard)
+// ======================
+app.get("/api/members", async (req, res) => {
+  try {
+    const members = await Member.find()
+      .populate("district", "name")
+      .populate("cell", "name");
+    res.json(members);
+  } catch (err) {
+    console.error("Error fetching members:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+module.exports = app;
 // Global error handler – always return JSON
 app.use((err, req, res, next) => {
   console.error("Unhandled server error:", err);
