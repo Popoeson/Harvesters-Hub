@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cell Membership Registration</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f9;
+      margin: 0;
+      padding: 0;
+    }
+    
+     .header {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #fff;
+      padding: 12px 16px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .header img {
+      height: 30px;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 40px auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 15px;
+    }
+
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    button {
+      background: green;
+      color: white;
+      border: none;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+
+    button:hover {
+      background: darkgreen;
+    }
+
+    .district-cell {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    #cellsList {
+      margin-top: 20px;
+      display: none;
+    }
+
+    .cell-card {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f9f9f9;
+      padding: 10px;
+      margin-bottom: 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+    }
+
+    .cell-card button {
+      width: auto;
+      background: #007bff;
+    }
+
+    .cell-card button:hover {
+      background: #0056b3;
+    }
+
+    #chosenCell {
+      margin-top: 10px;
+      padding: 10px;
+      background: #eafbea;
+      border: 1px solid #8bc34a;
+      border-radius: 6px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+    
+    <!-- Header -->
+  <div class="header">
+    <img src="uploads/harvesters.png" alt="Logo">
+  </div>
+
+  <div class="container">
+    <h2>Cell Membership Registration</h2>
+    <form id="memberForm">
+      <label>Full Name</label>
+      <input type="text" id="fullName" required>
+
+      <label>Address</label>
+      <input type="text" id="address" required>
+
+      <label>Phone Number</label>
+      <input type="text" id="phone" required>
+
+      <label>Email</label>
+      <input type="email" id="email" required>
+
+      <label>Choose District</label>
+      <div class="district-cell">
+        <select id="districtSelect" required>
+          <option value="">Select District</option>
+        </select>
+        <button type="button" id="viewCellsBtn">View Cells Location</button>
+      </div>
+
+      <div id="cellsList"></div>
+
+      <div id="chosenCell"></div>
+
+      <button type="submit">Register Member</button>
+    </form>
+  </div>
+
+  <script>
+    const backendUrl = "https://your-backend-url.com"; // Replace with your backend
+
+    const districtSelect = document.getElementById("districtSelect");
+    const cellsList = document.getElementById("cellsList");
+    const chosenCellDiv = document.getElementById("chosenCell");
+    let selectedCell = null;
+
+    // Load districts into dropdown
+    async function loadDistricts() {
+      try {
+        const res = await fetch(`${backendUrl}/api/districts`);
+        const districts = await res.json();
+        districts.forEach(d => {
+          const option = document.createElement("option");
+          option.value = d._id;
+          option.textContent = d.name;
+          districtSelect.appendChild(option);
+        });
+      } catch (err) {
+        console.error("Error loading districts:", err);
+      }
+    }
+
+    // View cells under selected district
+    document.getElementById("viewCellsBtn").addEventListener("click", async () => {
+      const districtId = districtSelect.value;
+      if (!districtId) {
+        alert("Please select a district first.");
+        return;
+      }
+
+      try {
+        const res = await fetch(`${backendUrl}/api/cells/by-district/${districtId}`);
+        const cells = await res.json();
+
+        cellsList.innerHTML = "<h3>Available Cells</h3>";
+        if (cells.length === 0) {
+          cellsList.innerHTML += "<p>No cells found for this district.</p>";
+        } else {
+          cells.forEach(cell => {
+            const div = document.createElement("div");
+            div.className = "cell-card";
+            div.innerHTML = `
+              <span><strong>${cell.name}</strong> - Leader: ${cell.leader}</span>
+              <button type="button" onclick="selectCell('${cell._id}', '${cell.name}')">Select</button>
+            `;
+            cellsList.appendChild(div);
+          });
+        }
+
+        cellsList.style.display = "block";
+      } catch (err) {
+        console.error("Error loading cells:", err);
+      }
+    });
+
+    // Select cell
+    window.selectCell = (id, name) => {
+      selectedCell = id;
+      chosenCellDiv.textContent = `Chosen Cell: ${name}`;
+      chosenCellDiv.style.display = "block";
+    };
+
+    // Handle form submission
+    document.getElementById("memberForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (!selectedCell) {
+        alert("Please select a cell location.");
+        return;
+      }
+
+      const memberData = {
+        fullName: document.getElementById("fullName").value,
+        address: document.getElementById("address").value,
+        phone: document.getElementById("phone").value,
+        email: document.getElementById("email").value,
+        district: districtSelect.value,
+        cell: selectedCell
+      };
+
+      try {
+        const res = await fetch(`${backendUrl}/api/members/register`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(memberData)
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          alert("Member registered successfully!");
+          document.getElementById("memberForm").reset();
+          chosenCellDiv.style.display = "none";
+          cellsList.style.display = "none";
+          selectedCell = null;
+        } else {
+          alert(data.message || "Registration failed.");
+        }
+      } catch (err) {
+        console.error("Error registering member:", err);
+      }
+    });
+
+    loadDistricts();
+  </script>
+
+</body>
+</html>
