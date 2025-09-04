@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>District Registration</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register District</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -10,7 +13,8 @@
       margin: 0;
       padding: 0;
     }
-        /* Header */
+
+    /* Header */
     .header {
       display: flex;
       justify-content: center;
@@ -24,85 +28,107 @@
     }
 
     .header img {
-      height: 40px;
+      height: 30px;
     }
-    
-    .container {
-  max-width: 500px;
-  margin: 40px auto; /* same spacing as campus */
-  padding: 20px;
-  background: #fff;
-  border-radius: 12px; /* make it rounder like campus */
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-}
 
-h2 {
-  text-align: center;
-  margin-bottom: 20px;
-  color: #333;
-}
+    /* Form Container */
+    .form-container {
+      max-width: 500px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
 
-label {
-  display: block;
-  margin-bottom: 6px; /* smaller gap, same as campus */
-  font-weight: bold;
-  color: #444;
-}
+    .form-container h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+    }
 
-input, select {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 8px; /* rounder */
-  font-size: 14px;
-}
+    .form-group {
+      margin-bottom: 15px;
+    }
 
-button {
-  width: 100%;
-  padding: 12px;
-  background: #222;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-size: 16px; /* larger font */
-  cursor: pointer;
-}
+    .form-group label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: bold;
+      color: #444;
+    }
 
-button:hover {
-  background: gray;
-        }
+    .form-group input, .form-group select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background: green;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: darkgreen;
+    }
+
+    .message {
+      text-align: center;
+      margin-top: 15px;
+      font-size: 14px;
+    }
   </style>
 </head>
 <body>
-  
-  <div class="container">
-      
-         <!-- Header -->
-     <div class="header">
+
+  <!-- Header -->
+  <div class="header">
     <img src="uploads/harvesters.png" alt="Logo">
   </div>
-  
+
+  <!-- Form -->
+  <div class="form-container">
     <h2>Register District</h2>
     <form id="districtForm" enctype="multipart/form-data">
-      <label for="name">District Name</label>
-      <input type="text" id="name" name="name" required>
+      <div class="form-group">
+        <label for="name">District Name</label>
+        <input type="text" id="name" name="name" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="campus">District Campus</label>
+        <select id="campus" name="campus" required>
+          <option value="">-- Select Campus --</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label for="email">District Email</label>
+        <input type="email" id="email" name="email" required>
+      </div>
 
-      <label for="campus">District Campus</label>
-      <select id="campus" name="campus" required>
-        <option value="">-- Select Campus --</option>
-      </select>
+      <div class="form-group">
+        <label for="password">District Password</label>
+        <input type="password" id="password" name="password" required>
+      </div>
 
-      <label for="email">District Email</label>
-      <input type="email" id="email" name="email" required>
-
-      <label for="password">Password</label>
-      <input type="password" id="password" name="password" required>
-
-      <label for="logo">District Logo</label>
-      <input type="file" id="logo" name="logo" accept="image/*" required>
+      <div class="form-group">
+        <label for="logo">District Logo</label>
+        <input type="file" id="logo" name="logo" accept="image/*" required>
+      </div>
 
       <button type="submit">Register</button>
     </form>
+    <div class="message" id="message"></div>
   </div>
 
   <script>
@@ -156,4 +182,4 @@ button:hover {
     loadCampuses();
   </script>
 </body>
-</html>
+          </html>
