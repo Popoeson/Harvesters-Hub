@@ -87,6 +87,7 @@ const cellSchema = new mongoose.Schema({
   campus: { type: mongoose.Schema.Types.ObjectId, ref: "Campus", required: true },
   district: { type: mongoose.Schema.Types.ObjectId, ref: "District", required: true },
   leader: { type: String, required: true },
+  phone: { type: String, required: true},
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true }, // plain since no bcrypt
   logo: { type: String },
@@ -396,9 +397,9 @@ app.get("/api/district", async (req, res) => {
 // ✅ Register Cell
 app.post("/api/cell/register", upload.single("logo"), async (req, res) => {
   try {
-    const { name, campus, district, leader, email, password } = req.body;
+    const { name, campus, district, leader, phone, email, password } = req.body;
 
-    if (!name || !campus || !district || !leader || !email || !password) {
+    if (!name || !campus || !district || !leader || !phone || !email || !password) {
       return res.status(400).json({ success: false, message: "All fields are required" });
     }
 
@@ -418,6 +419,7 @@ app.post("/api/cell/register", upload.single("logo"), async (req, res) => {
       campus,
       district,
       leader,
+      phone,
       email,
       password,
       logo: logoUrl,
