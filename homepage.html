@@ -10,27 +10,26 @@
       background: #fff;
       margin: 0;
       padding-top: 70px; /* avoid content hiding behind fixed header */
-  
     }
 
     header {
-    background: #fff;
-    padding: 10px;
-    text-align: center;
-    font-weight: bold;
-    border-bottom: 1px solid #ddd;
-    position: fixed; /* changed from sticky to fixed */
-    top: 0;
-    left: 0;
-    width: 100%;
-    z-index: 10;
-    height: 65px;
-    transition: transform 0.3s ease-in-out; /* smooth slide */
-  }
-  
-  header.hidden {
-    transform: translateY(-100%); /* move header out of view */
-  }
+      background: #fff;
+      padding: 10px;
+      text-align: center;
+      font-weight: bold;
+      border-bottom: 1px solid #ddd;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 10;
+      height: 65px;
+      transition: transform 0.3s ease-in-out;
+    }
+
+    header.hidden {
+      transform: translateY(-100%);
+    }
 
     .post {
       max-width: 400px;
@@ -67,15 +66,15 @@
       padding: 0 10px 10px;
       font-weight: bold;
     }
-    
+
     .caption {
-  padding: 10px;
-  font-size: 14px;
-  color: #333;
-  border-top: 1px solid #eee;
-  border-bottom: 1px solid #eee;
-  background: #fafafa;
-}
+      padding: 10px;
+      font-size: 14px;
+      color: #333;
+      border-top: 1px solid #eee;
+      border-bottom: 1px solid #eee;
+      background: #fafafa;
+    }
 
     .message {
       position: fixed;
@@ -102,9 +101,11 @@
       margin: 5px;
       border-radius: 5px;
     }
+
     .navbar img {
       height: 20px;
     }
+
     .navbar h1 {
       flex-grow: 1;
       text-align: center;
@@ -125,6 +126,49 @@
         font-size: 16px;
       }
     }
+
+    /* Footer Card */
+    .footer {
+      background: #fff;
+      padding: 10px 5px;
+      box-shadow: 0 -2px 6px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top-left-radius: 12px;
+      border-top-right-radius: 12px;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      display: none; /* hidden by default */
+    }
+
+    .footer-item {
+      flex: 1;
+      text-align: center;
+      font-size: 18px;
+      cursor: pointer;
+      color: #333;
+    }
+
+    .footer-item.center {
+      font-size: 28px;
+      font-weight: bold;
+      color: black;
+    }
+
+    .menu-bars {
+      display: inline-block;
+    }
+
+    .bar {
+      width: 22px;
+      height: 3px;
+      background-color: #333;
+      margin: 4px 0;
+      border-radius: 2px;
+    }
   </style>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
@@ -140,234 +184,219 @@
 
   <div class="message" id="messageBox"></div>
 
-  
+  <!-- Footer -->
+  <div class="footer" id="footer">
+    <div class="footer-item">Home</div>
+    <div class="footer-item center">+</div>
+    <div class="footer-item">
+      <div class="menu-bars">
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+      </div>
+    </div>
+  </div>
+
   <script>
-const API_URL = "https://harvesters-hub-fbgo.onrender.com";
+    const API_URL = "https://harvesters-hub-fbgo.onrender.com";
 
-async function fetchUploads() {
-  try {
-    const res = await fetch(`${API_URL}/api/uploads`);
-    const json = await res.json();
+    async function fetchUploads() {
+      try {
+        const res = await fetch(`${API_URL}/api/uploads`);
+        const json = await res.json();
 
-    if (!json.success) throw new Error("Failed to fetch uploads");
+        if (!json.success) throw new Error("Failed to fetch uploads");
 
-    const uploads = json.data.map(u => ({
-      _id: u._id,
-      fileUrl: u.url || u.secure_url,
-      fileType: u.resource_type || "image",
-      likes: u.likes || 0,
-      comments: u.comments || "",   // ✅ pull caption
-      liked: isPostLiked(u._id)
-    }));
+        const uploads = json.data.map(u => ({
+          _id: u._id,
+          fileUrl: u.url || u.secure_url,
+          fileType: u.resource_type || "image",
+          likes: u.likes || 0,
+          comments: u.comments || "",
+          liked: isPostLiked(u._id)
+        }));
 
-    renderPosts(uploads);
-  } catch (err) {
-    console.error("Error fetching uploads:", err);
-  }
-}
-
-function renderPosts(uploads) {
-  const feed = document.getElementById("feed");
-  feed.innerHTML = "";
-
-  uploads.forEach(upload => {
-    const post = document.createElement("div");
-    post.className = "post";
-    post.id = `post-${upload._id}`;
-
-    let mediaEl;
-    if (upload.fileType === "video") {
-      mediaEl = document.createElement("video");
-      mediaEl.src = upload.fileUrl;
-      mediaEl.controls = true;
-    } else {
-      mediaEl = document.createElement("img");
-      mediaEl.src = upload.fileUrl;
+        renderPosts(uploads);
+      } catch (err) {
+        console.error("Error fetching uploads:", err);
+      }
     }
 
-    // ✅ click image → single post view
-    mediaEl.addEventListener("click", () => {
-      window.location.href = `post.html?id=${upload._id}`;
-    });
+    function renderPosts(uploads) {
+      const feed = document.getElementById("feed");
+      feed.innerHTML = "";
 
-    // ✅ Caption block
-    const caption = document.createElement("div");
-    caption.className = "caption";
-    caption.textContent = upload.comments || "";
+      uploads.forEach(upload => {
+        const post = document.createElement("div");
+        post.className = "post";
+        post.id = `post-${upload._id}`;
 
-    const actions = document.createElement("div");
-    actions.className = "actions";
+        let mediaEl;
+        if (upload.fileType === "video") {
+          mediaEl = document.createElement("video");
+          mediaEl.src = upload.fileUrl;
+          mediaEl.controls = true;
+        } else {
+          mediaEl = document.createElement("img");
+          mediaEl.src = upload.fileUrl;
+        }
 
-    const likeIcon = document.createElement("i");
-    likeIcon.className = upload.liked
-      ? "fa-solid fa-heart liked"
-      : "fa-regular fa-heart";
-
-    const shareIcon = document.createElement("i");
-    shareIcon.className = "fa-solid fa-share";
-
-    const downloadIcon = document.createElement("i");
-    downloadIcon.className = "fa-solid fa-download";
-
-    actions.appendChild(likeIcon);
-    actions.appendChild(shareIcon);
-    actions.appendChild(downloadIcon);
-
-    const likesCount = document.createElement("div");
-    likesCount.className = "likes";
-    likesCount.textContent = `${upload.likes || 0} likes`;
-
-    // ✅ Like toggle
-    likeIcon.addEventListener("click", () =>
-      handleLikeToggle(upload, likeIcon, likesCount)
-    );
-    mediaEl.addEventListener("dblclick", () =>
-      handleLikeToggle(upload, likeIcon, likesCount)
-    );
-
-    // ✅ Share: copy unique link
-    shareIcon.addEventListener("click", () => {
-      const postLink = `${window.location.origin}/post.html?id=${upload._id}`;
-      if (navigator.share) {
-        navigator.share({
-          title: "Check out this post!",
-          url: postLink
-        }).catch(err => console.log("Share cancelled", err));
-      } else {
-        navigator.clipboard.writeText(postLink).then(() => {
-          showMessage("🔗 Post link copied to clipboard ✅");
+        mediaEl.addEventListener("click", () => {
+          window.location.href = `post.html?id=${upload._id}`;
         });
-      }
-    });
-    
-    // ✅ Download: confirm then save
-    downloadIcon.addEventListener("click", () => {
-      if (confirm("Do you want to download this file?")) {
-        const a = document.createElement("a");
-        a.href = upload.fileUrl;
-        a.download = upload.fileUrl.split("/").pop();
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-      }
-    });
 
-    post.appendChild(mediaEl);
-    post.appendChild(caption);   // ✅ caption inserted here
-    post.appendChild(actions);
-    post.appendChild(likesCount);
-    feed.appendChild(post);
-  });
+        const caption = document.createElement("div");
+        caption.className = "caption";
+        caption.textContent = upload.comments || "";
 
-  // ✅ After rendering, handle scroll-to-hash
-  const hash = window.location.hash;
-  if (hash) {
-    setTimeout(() => {
-      const el = document.querySelector(hash);
-      if (el) {
-        el.scrollIntoView({ behavior: "smooth", block: "center" });
-      }
-    }, 300); // small delay ensures posts are mounted
-  }
-}
+        const actions = document.createElement("div");
+        actions.className = "actions";
 
-async function handleLikeToggle(upload, icon, likesCountEl) {
-  try {
-    if (!upload._id) {
-      console.error("Missing _id on upload:", upload);
-      return;
+        const likeIcon = document.createElement("i");
+        likeIcon.className = upload.liked
+          ? "fa-solid fa-heart liked"
+          : "fa-regular fa-heart";
+
+        const shareIcon = document.createElement("i");
+        shareIcon.className = "fa-solid fa-share";
+
+        const downloadIcon = document.createElement("i");
+        downloadIcon.className = "fa-solid fa-download";
+
+        actions.appendChild(likeIcon);
+        actions.appendChild(shareIcon);
+        actions.appendChild(downloadIcon);
+
+        const likesCount = document.createElement("div");
+        likesCount.className = "likes";
+        likesCount.textContent = `${upload.likes || 0} likes`;
+
+        likeIcon.addEventListener("click", () =>
+          handleLikeToggle(upload, likeIcon, likesCount)
+        );
+        mediaEl.addEventListener("dblclick", () =>
+          handleLikeToggle(upload, likeIcon, likesCount)
+        );
+
+        shareIcon.addEventListener("click", () => {
+          const postLink = `${window.location.origin}/post.html?id=${upload._id}`;
+          if (navigator.share) {
+            navigator.share({
+              title: "Check out this post!",
+              url: postLink
+            }).catch(err => console.log("Share cancelled", err));
+          } else {
+            navigator.clipboard.writeText(postLink).then(() => {
+              showMessage("🔗 Post link copied to clipboard ✅");
+            });
+          }
+        });
+
+        downloadIcon.addEventListener("click", () => {
+          if (confirm("Do you want to download this file?")) {
+            const a = document.createElement("a");
+            a.href = upload.fileUrl;
+            a.download = upload.fileUrl.split("/").pop();
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+          }
+        });
+
+        post.appendChild(mediaEl);
+        post.appendChild(caption);
+        post.appendChild(actions);
+        post.appendChild(likesCount);
+        feed.appendChild(post);
+      });
     }
 
-    const res = await fetch(`${API_URL}/api/uploads/${upload._id}/like`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ deviceId: getDeviceId() })
+    async function handleLikeToggle(upload, icon, likesCountEl) {
+      try {
+        if (!upload._id) return;
+
+        const res = await fetch(`${API_URL}/api/uploads/${upload._id}/like`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ deviceId: getDeviceId() })
+        });
+
+        const data = await res.json();
+        if (!res.ok) return;
+
+        upload.likes = data.likes;
+        upload.liked = data.liked;
+
+        likesCountEl.textContent = `${upload.likes} likes`;
+        icon.className = upload.liked ? "fa-solid fa-heart liked" : "fa-regular fa-heart";
+
+        if (upload.liked) saveLike(upload._id);
+        else removeLike(upload._id);
+      } catch (err) {
+        console.error("Error toggling like:", err);
+      }
+    }
+
+    // --- LocalStorage Helpers ---
+    function getDeviceId() {
+      let deviceId = localStorage.getItem("deviceId");
+      if (!deviceId) {
+        deviceId = `device-${Math.random().toString(36).substr(2, 9)}`;
+        localStorage.setItem("deviceId", deviceId);
+      }
+      return deviceId;
+    }
+
+    function isPostLiked(postId) {
+      const likedPosts = JSON.parse(localStorage.getItem("likedPosts") || "[]");
+      return likedPosts.includes(postId);
+    }
+
+    function saveLike(postId) {
+      const likedPosts = JSON.parse(localStorage.getItem("likedPosts") || "[]");
+      if (!likedPosts.includes(postId)) {
+        likedPosts.push(postId);
+        localStorage.setItem("likedPosts", JSON.stringify(likedPosts));
+      }
+    }
+
+    function removeLike(postId) {
+      let likedPosts = JSON.parse(localStorage.getItem("likedPosts") || "[]");
+      likedPosts = likedPosts.filter(id => id !== postId);
+      localStorage.setItem("likedPosts", JSON.stringify(likedPosts));
+    }
+
+    function showMessage(msg) {
+      const box = document.getElementById("messageBox");
+      box.textContent = msg;
+      box.style.display = "block";
+      setTimeout(() => {
+        box.style.display = "none";
+      }, 2000);
+    }
+
+    fetchUploads();
+
+    let lastScrollTop = 0;
+    const header = document.querySelector("header");
+
+    window.addEventListener("scroll", () => {
+      const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+      if (currentScroll > lastScrollTop) {
+        header.classList.add("hidden");
+      } else {
+        header.classList.remove("hidden");
+      }
+      lastScrollTop = currentScroll <= 0 ? 0 : currentScroll;
+    }, false);
+
+    // ✅ Show footer only if logged in
+    document.addEventListener("DOMContentLoaded", () => {
+      const user = JSON.parse(localStorage.getItem("user") || "null");
+      if (user && ["campus", "district", "cell"].includes(user.role)) {
+        document.getElementById("footer").style.display = "flex";
+      }
     });
-
-    const ct = res.headers.get("content-type") || "";
-    const data = ct.includes("application/json") ? await res.json() : null;
-
-    if (!res.ok) {
-      console.error("Server responded with error:", data || (await res.text()));
-      return;
-    }
-
-    upload.likes = data.likes;
-    upload.liked = data.liked;
-
-    likesCountEl.textContent = `${upload.likes} likes`;
-    icon.className = upload.liked ? "fa-solid fa-heart liked" : "fa-regular fa-heart";
-
-    if (upload.liked) saveLike(upload._id);
-    else removeLike(upload._id);
-  } catch (err) {
-    console.error("Error toggling like:", err);
-  }
-}
-
-// --- LocalStorage Helpers ---
-function getDeviceId() {
-  let deviceId = localStorage.getItem("deviceId");
-  if (!deviceId) {
-    deviceId = `device-${Math.random().toString(36).substr(2, 9)}`;
-    localStorage.setItem("deviceId", deviceId);
-  }
-  return deviceId;
-}
-
-function isPostLiked(postId) {
-  const likedPosts = JSON.parse(localStorage.getItem("likedPosts") || "[]");
-  return likedPosts.includes(postId);
-}
-
-function saveLike(postId) {
-  const likedPosts = JSON.parse(localStorage.getItem("likedPosts") || "[]");
-  if (!likedPosts.includes(postId)) {
-    likedPosts.push(postId);
-    localStorage.setItem("likedPosts", JSON.stringify(likedPosts));
-  }
-}
-
-function removeLike(postId) {
-  let likedPosts = JSON.parse(localStorage.getItem("likedPosts") || "[]");
-  likedPosts = likedPosts.filter(id => id !== postId);
-  localStorage.setItem("likedPosts", JSON.stringify(likedPosts));
-}
-
-function showMessage(msg) {
-  const box = document.getElementById("messageBox");
-  box.textContent = msg;
-  box.style.display = "block";
-  setTimeout(() => {
-    box.style.display = "none";
-  }, 2000);
-}
-
-fetchUploads();
-
-let lastScrollTop = 0;
-const header = document.querySelector("header");
-
-window.addEventListener("scroll", () => {
-  const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
-
-  if (currentScroll > lastScrollTop) {
-    // scrolling down → hide header
-    header.classList.add("hidden");
-  } else {
-    // scrolling up → show header
-    header.classList.remove("hidden");
-  }
-
-  lastScrollTop = currentScroll <= 0 ? 0 : currentScroll; // avoid negative
-}, false);
-
-  // ✅ Clear hash if this is a page reload
-if (performance.getEntriesByType("navigation")[0].type === "reload") {
-  history.replaceState(null, null, window.location.pathname);
-    }
   </script>
-</script>
 </body>
-  </html>
-  
+      </html>
