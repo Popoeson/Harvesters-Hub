@@ -177,6 +177,83 @@ app.get("/api/uploads/:id", async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 });
+
+// --------------------------------------------------
+// Register Campus
+// --------------------------------------------------
+app.post("/api/campus/register", upload.single("logo"), async (req, res) => {
+  try {
+    const { name, address, email, password } = req.body;
+
+    if (!name || !address || !email || !password) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    // check if campus already exists
+    const existing = await Campus.findOne({ email });
+    if (existing) {
+      return res.status(400).json({ message: "Campus already exists" });
+    }
+
+    // multer-storage-cloudinary gives us secure_url in req.file.path
+    let logoUrl = "";
+    if (req.file && req.file.path) {
+      logoUrl = req.file.path;
+    }
+
+    const newCampus = new Campus({
+      name,
+      address,
+      email,
+      logo: logoUrl,
+      password, // plain password for now
+    });
+
+    await newCampus.save();
+
+    res.status(201).json({
+      success: true,
+      message: "Campus registered successfully",
+      campus: newCampus,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
+// --------------------------------------------------
+// Login Campus
+// --------------------------------------------------
+app.post("/api/campus/login", async (req, res) => {
+  try {
+    const { identifier, password } = req.body; // identifier = name OR email
+
+    if (!identifier || !password) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    const campus = await Campus.findOne({
+      $or: [{ email: identifier }, { name: identifier }],
+    });
+
+    if (!campus) {
+      return res.status(404).json({ message: "Campus not found" });
+    }
+
+    if (campus.password !== password) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Login successful",
+      campus,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
 // Global error handler – always return JSON
 app.use((err, req, res, next) => {
   console.error("Unhandled server error:", err);
