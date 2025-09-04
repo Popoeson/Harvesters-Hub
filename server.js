@@ -75,8 +75,7 @@ const campusSchema = new mongoose.Schema({
 
 // ---------- Mongoose Models ---------
 const Image = mongoose.model("Image", ImageSchema);
-module.exports = mongoose.model("Campus", campusSchema);
-
+const Campus = mongoose.model("Campus", campusSchema);
 // ---------- Routes ----------
 
 // Health probe
