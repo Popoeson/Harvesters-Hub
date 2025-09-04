@@ -82,11 +82,22 @@ const districtSchema = new mongoose.Schema({
   logo: { type: String }
 }, { timestamps: true });
 
+const cellSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  campus: { type: mongoose.Schema.Types.ObjectId, ref: "Campus", required: true },
+  district: { type: mongoose.Schema.Types.ObjectId, ref: "District", required: true },
+  leader: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true }, // plain since no bcrypt
+  logo: { type: String },
+  dateRegistered: { type: Date, default: Date.now },
+});
 
 // ---------- Mongoose Models ---------
 const Image = mongoose.model("Image", ImageSchema);
 const Campus = mongoose.model("Campus", campusSchema);
 const District = mongoose.model("District", districtSchema);
+const Cell = mongoose.model("Cell",cellSchema);
 // ---------- Routes ----------
 
 // Health probe
@@ -379,6 +390,70 @@ app.get("/api/district", async (req, res) => {
   } catch (error) {
     console.error("Error fetching districts:", error);
     res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+// ✅ Register Cell
+app.post("/api/cell/register", upload.single("logo"), async (req, res) => {
+  try {
+    const { name, campus, district, leader, email, password } = req.body;
+
+    if (!name || !campus || !district || !leader || !email || !password) {
+      return res.status(400).json({ success: false, message: "All fields are required" });
+    }
+
+    // check if email exists
+    const existing = await Cell.findOne({ email });
+    if (existing) {
+      return res.status(400).json({ success: false, message: "Cell already exists" });
+    }
+
+    let logoUrl = "";
+    if (req.file) {
+      logoUrl = req.file.path; // Cloudinary auto uploads via multer-storage-cloudinary
+    }
+
+    const newCell = new Cell({
+      name,
+      campus,
+      district,
+      leader,
+      email,
+      password,
+      logo: logoUrl,
+    });
+
+    await newCell.save();
+
+    res.status(201).json({ success: true, message: "Cell registered successfully", data: newCell });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error registering cell", error: err.message });
+  }
+});
+
+// ✅ Fetch all cells
+app.get("/api/cell", async (req, res) => {
+  try {
+    const cells = await Cell.find()
+      .populate("campus", "name")
+      .populate("district", "name");
+    res.json({ success: true, data: cells });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching cells", error: err.message });
+  }
+});
+
+// ✅ Fetch districts under a campus (for dropdown)
+app.get("/api/districts", async (req, res) => {
+  try {
+    const { campus } = req.query;
+    let query = {};
+    if (campus) query.campus = campus;
+
+    const districts = await District.find(query).populate("campus", "name");
+    res.json({ success: true, data: districts });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching districts", error: err.message });
   }
 });
 
