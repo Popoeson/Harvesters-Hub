@@ -167,21 +167,72 @@
 .sidebar {
   position: fixed;
   top: 0;
-  right: -250px;
-  width: 250px;
+  right: -270px;
+  width: 270px;
   height: 100%;
   background: #fff;
   box-shadow: -2px 0 6px rgba(0,0,0,0.2);
   transition: right 0.3s ease;
   z-index: 20;
+  overflow-y: auto;
 }
-.sidebar.open {
-  right: 0;
-}
+.sidebar.open { right: 0; }
+
 .sidebar-content {
   padding: 20px;
-      }
+}
 
+.user-info {
+  text-align: center;
+  margin-bottom: 20px;
+}
+.user-info img {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 2px solid #ddd;
+  object-fit: cover;
+}
+.user-info h3 {
+  margin-top: 10px;
+  font-size: 18px;
+  color: #333;
+}
+
+/* Sidebar buttons */
+.sidebar-btn {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  margin: 8px 0;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #f9f9f9;
+  text-align: center;
+  font-size: 15px;
+  color: #333;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+.sidebar-btn:hover {
+  background: #eee;
+}
+
+/* Logout button */
+.logout-btn {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #f5c2c7;
+  border-radius: 8px;
+  background: #f8d7da;
+  color: #842029;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.logout-btn:hover {
+  background: #f5c2c7;
+      }
 
   </style>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -214,9 +265,21 @@
 <!-- ✅ Sidebar -->
 <div id="sidebar" class="sidebar">
   <div class="sidebar-content">
-    <span id="closeSidebar" style="cursor:pointer;font-size:20px;">&times;</span>
-    <h2>Menu</h2>
-    <p>(We’ll add sidebar items later)</p>
+    <span id="closeSidebar" style="cursor:pointer;font-size:20px;float:right;">&times;</span>
+    
+    <!-- User Info -->
+    <div class="user-info">
+      <img id="sidebarLogo" src="" alt="User Logo">
+      <h3 id="sidebarName"></h3>
+    </div>
+    
+    <!-- Buttons will render here -->
+    <div id="sidebarButtons"></div>
+
+    <!-- Logout -->
+    <div style="margin-top: 30px; text-align:center;">
+      <button id="logoutBtn" class="logout-btn">Logout</button>
+    </div>
   </div>
 </div>
 
@@ -437,6 +500,59 @@ document.getElementById("menuBtn").addEventListener("click", () => {
 
 document.getElementById("closeSidebar").addEventListener("click", () => {
   document.getElementById("sidebar").classList.remove("open");
+});
+    // ✅ Populate sidebar with user info + role-specific buttons
+function renderSidebar() {
+  const user = JSON.parse(localStorage.getItem("user"));
+  if (!user) return;
+
+  // User Info
+  document.getElementById("sidebarLogo").src = user.logo || "uploads/default-logo.png";
+  document.getElementById("sidebarName").textContent = user.name || "Unknown User";
+
+  const sidebarButtons = document.getElementById("sidebarButtons");
+  sidebarButtons.innerHTML = ""; // clear first
+
+  let buttons = [];
+  if (user.role === "campus") {
+    buttons = [
+      { label: "Register District", link: "district-registration.html" },
+      { label: "View Districts", link: "district-dashboard.html" },
+      { label: "Register Cell", link: "cell-registration.html" },
+      { label: "View Cells", link: "cell-dashboard.html" }
+    ];
+  } else if (user.role === "district") {
+    buttons = [
+      { label: "Register Cell", link: "cell-registration.html" },
+      { label: "View Cells", link: "cell-dashboard.html" }
+    ];
+  } else if (user.role === "cell") {
+    buttons = [
+      { label: "Register Members", link: "cellMembership-registration.html" },
+      { label: "View Members", link: "members.html" }
+    ];
+  }
+
+  // Render buttons
+  buttons.forEach(btn => {
+    const a = document.createElement("a");
+    a.href = btn.link;
+    a.textContent = btn.label;
+    a.className = "sidebar-btn";
+    sidebarButtons.appendChild(a);
+  });
+}
+
+// ✅ Logout handler
+document.getElementById("logoutBtn").addEventListener("click", () => {
+  localStorage.removeItem("user"); // clear login
+  window.location.href = "homepage.html"; // redirect to general homepage
+});
+
+// Run renderSidebar when sidebar opens
+document.getElementById("menuBtn").addEventListener("click", () => {
+  renderSidebar();
+  document.getElementById("sidebar").classList.add("open");
 });
   </script>
 </body>
