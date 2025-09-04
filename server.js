@@ -86,6 +86,7 @@ const cellSchema = new mongoose.Schema({
   name: { type: String, required: true },
   campus: { type: mongoose.Schema.Types.ObjectId, ref: "Campus", required: true },
   district: { type: mongoose.Schema.Types.ObjectId, ref: "District", required: true },
+  address: { type: String, required: true },
   leader: { type: String, required: true },
   phone: { type: String, required: true},
   email: { type: String, required: true, unique: true },
@@ -399,7 +400,7 @@ app.post("/api/cell/register", upload.single("logo"), async (req, res) => {
   try {
     const { name, campus, district, leader, phone, email, password } = req.body;
 
-    if (!name || !campus || !district || !leader || !phone || !email || !password) {
+    if (!name || !campus || !district || !address || !leader || !phone || !email || !password) {
       return res.status(400).json({ success: false, message: "All fields are required" });
     }
 
@@ -418,6 +419,7 @@ app.post("/api/cell/register", upload.single("logo"), async (req, res) => {
       name,
       campus,
       district,
+      address,
       leader,
       phone,
       email,
@@ -459,6 +461,7 @@ app.post("/api/cell/login", async (req, res) => {
       cell: {
         id: cell._id,
         name: cell.name,
+        address: cell.address,
         leader: cell.leader,
         phone: cell.phone,
         email: cell.email,
