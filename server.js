@@ -514,6 +514,58 @@ app.get("/api/districts", async (req, res) => {
 });
 
 // ======================
+// Universal Login
+// ======================
+app.post("/api/universal-login", async (req, res) => {
+  try {
+    const { identifier, password } = req.body; // identifier = email | campus | district | cell
+
+    if (!identifier || !password) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    let user = null;
+    let role = "";
+
+    // 1. Check Campus
+    user = await Campus.findOne({ $or: [{ email: identifier }, { name: identifier }] });
+    if (user) role = "campus";
+
+    // 2. Check District
+    if (!user) {
+      user = await District.findOne({ $or: [{ email: identifier }, { name: identifier }] });
+      if (user) role = "district";
+    }
+
+    // 3. Check Cell
+    if (!user) {
+      user = await Cell.findOne({ $or: [{ email: identifier }, { name: identifier }] });
+      if (user) role = "cell";
+    }
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Compare password
+    const isMatch = password === user.password; // ❗ Replace with bcrypt.compare() if hashed
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid password" });
+    }
+
+    res.json({
+      message: "Login successful",
+      role,
+      user: { id: user._id, name: user.name || user.email, email: user.email }
+    });
+
+  } catch (err) {
+    console.error("Error in universal login:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// ======================
 // Register a Member
 // ======================
 app.post("/api/members/register", async (req, res) => {
