@@ -149,7 +149,7 @@ app.post("/api/upload", upload.array("files"), async (req, res) => {
         const newImage = new Image({
           url: file.path,            // Cloudinary URL
           type: isVideo ? "video" : "image",
-          comments = comment,
+          comments: comment,
           likes: 0,
           likedBy: [],
           uploaderId,
