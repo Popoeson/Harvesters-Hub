@@ -121,7 +121,11 @@
         }
 
         // Save role & user info in localStorage
-        localStorage.setItem("user", JSON.stringify(data));
+     //   localStorage.setItem("user", JSON.stringify(data));
+        localStorage.setItem("user", JSON.stringify({
+  id: user._id,        // from MongoDB
+  role: "campus"       // or "district" / "cell"
+}));
 
         // Redirect
         window.location.href = "homepage.html";
