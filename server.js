@@ -133,21 +133,23 @@ app.get("/health", (req, res) => {
 // Upload route (images + videos, multiple files, one comment)
 app.post("/api/upload", upload.array("files"), async (req, res) => {
   try {
-    const comment = req.body.comment || "";
+    const {
+      comment,
+      uploaderId,
+      uploaderRole,
+      uploaderName,
+      uploaderLogo
+    } = req.body;
 
-    // ✅ Extract user info from req.user (assuming auth middleware sets it)
-    const uploaderId = req.user._id;
-    const uploaderRole = req.user.role; // "campus" | "district" | "cell"
-    const uploaderName = req.user.name;
-    const uploaderLogo = req.user.logo;
+    if (!uploaderId || !uploaderRole || !uploaderName || !uploaderLogo) {
+      return res.status(400).json({ success: false, error: "Uploader info missing" });
+    }
 
-    // Save each file as a new Upload document
     const savedDocs = await Promise.all(
       req.files.map(file => {
-        // Detect file type
         const isVideo = file.mimetype.startsWith("video");
         const newImage = new Image({
-          url: file.path,            // Cloudinary URL
+          url: file.path,
           type: isVideo ? "video" : "image",
           comments: comment,
           likes: 0,
