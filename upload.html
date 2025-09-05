@@ -197,50 +197,62 @@
     });
 
     uploadBtn.addEventListener("click", async () => {
-      message.textContent = "";
-      message.className = "msg";
+  message.textContent = "";
+  message.className = "msg";
 
-      if (files.length === 0) {
-        message.textContent = "Please select at least one file.";
-        message.classList.add("error");
-        return;
-      }
+  if (files.length === 0) {
+    message.textContent = "Please select at least one file.";
+    message.classList.add("error");
+    return;
+  }
 
-      const comment = commentInput.value.trim();
-      uploadBtn.disabled = true;
-      spinner.style.display = "inline-block";
+  const comment = commentInput.value.trim();
+  uploadBtn.disabled = true;
+  spinner.style.display = "inline-block";
 
-      const formData = new FormData();
-      files.forEach(file => formData.append("files", file));
-      formData.append("comment", comment);
+  const formData = new FormData();
+  files.forEach(file => formData.append("files", file));
+  formData.append("comment", comment);
 
-      try {
-        const res = await fetch("https://harvesters-hub-fbgo.onrender.com/api/upload", {
-          method: "POST",
-          body: formData
-        });
+  // ✅ Add logged-in user details
+  const user = JSON.parse(localStorage.getItem("user"));
+  if (user) {
+    formData.append("uploaderId", user.id);
+    formData.append("uploaderRole", user.role);
+    formData.append("uploaderName", user.name);
+    formData.append("uploaderLogo", user.logo);
+  }
 
-        const data = await res.json();
-
-        if (res.ok) {
-          message.textContent = "✅ Upload successful!";
-          message.classList.add("success");
-          preview.innerHTML = "";
-          fileInput.value = "";
-          commentInput.value = "";
-          files = [];
-        } else {
-          message.textContent = data.error || "❌ Upload failed.";
-          message.classList.add("error");
-        }
-      } catch (err) {
-        message.textContent = "Server error. Try again.";
-        message.classList.add("error");
-      } finally {
-        uploadBtn.disabled = false;
-        spinner.style.display = "none";
-      }
+  try {
+    const res = await fetch("https://harvesters-hub-fbgo.onrender.com/api/upload", {
+      method: "POST",
+      body: formData
     });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      message.textContent = "✅ Upload successful!";
+      message.classList.add("success");
+      preview.innerHTML = "";
+      fileInput.value = "";
+      commentInput.value = "";
+      files = [];
+    } else {
+      message.textContent = data.error || "❌ Upload failed.";
+      message.classList.add("error");
+    }
+  } catch (err) {
+    console.error("Upload error:", err);
+    message.textContent = "Server error. Try again.";
+    message.classList.add("error");
+  } finally {
+    uploadBtn.disabled = false;
+    spinner.style.display = "none";
+  }
+});
   </script>
 </body>
 </html>
+
+
