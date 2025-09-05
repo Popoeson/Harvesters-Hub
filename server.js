@@ -56,10 +56,21 @@ const upload = multer({ storage });
 // ---------- Mongoose Schema---------
 const ImageSchema = new mongoose.Schema(
   {
-    url: { type: String, required: true },
+    url: { type: String, required: true }, // Cloudinary URL
+
+    // ✅ new field: identify if it's an image or video
+    type: { type: String, enum: ["image", "video"], required: true },
+
     comments: { type: String, default: "" },
-    likes: { type: Number, default: 0 },  // ✅ added this
-    likedBy: [{ type: String }],          // ✅ optional, store userIds if needed
+    likes: { type: Number, default: 0 },
+    likedBy: [{ type: String }],
+
+    // ✅ Uploader info
+    uploaderId: { type: mongoose.Schema.Types.ObjectId, required: true },
+    uploaderRole: { type: String, enum: ["campus", "district", "cell"], required: true },
+    uploaderName: { type: String, required: true },
+    uploaderLogo: { type: String, required: true },
+
     dateUploaded: { type: Date, default: Date.now }
   },
   { timestamps: true }
@@ -118,40 +129,54 @@ app.get("/health", (req, res) => {
   res.json({ ok: true, uptime: process.uptime() });
 });
 
-// 🔹 Upload route (MULTIPLE files + comment)
+
+// Upload route (images + videos, multiple files, one comment)
 app.post("/api/upload", upload.array("files"), async (req, res) => {
   try {
     const comment = req.body.comment || "";
 
-    // Save each file as a new document in MongoDB
+    // ✅ Extract user info from req.user (assuming auth middleware sets it)
+    const uploaderId = req.user._id;
+    const uploaderRole = req.user.role; // "campus" | "district" | "cell"
+    const uploaderName = req.user.name;
+    const uploaderLogo = req.user.logo;
+
+    // Save each file as a new Upload document
     const savedDocs = await Promise.all(
       req.files.map(file => {
-        const newImage = new Image({
-          url: file.path,          // Cloudinary URL
-          comments: comment,       // One comment for all
-          likes: 0,                // ✅ initialize likes
-          likedBy: []              // ✅ initialize empty array
+        // Detect file type
+        const isVideo = file.mimetype.startsWith("video");
+        const newUpload = new Upload({
+          url: file.path,            // Cloudinary URL
+          type: isVideo ? "video" : "image",
+          comment,
+          likes: 0,
+          likedBy: [],
+          uploaderId,
+          uploaderRole,
+          uploaderName,
+          uploaderLogo
         });
-        return newImage.save();
+        return newUpload.save();
       })
     );
 
     res.json({
-      message: "Files uploaded and saved successfully ✅",
-      files: savedDocs,   // return the saved DB docs
+      success: true,
+      message: "Files uploaded successfully ✅",
+      files: savedDocs
     });
   } catch (error) {
     console.error("Upload error:", error);
-    res.status(500).json({ error: "Upload failed ❌" });
+    res.status(500).json({ success: false, error: "Upload failed ❌" });
   }
 });
 
-
-// GET: return Mongo docs (not Cloudinary resources)
+// GET all uploads
 app.get("/api/uploads", async (req, res) => {
   try {
-    const images = await Image.find().sort({ createdAt: -1 });
-    res.json({ success: true, data: images });
+    const uploads = await Upload.find().sort({ createdAt: -1 });
+    res.json({ success: true, data: uploads });
   } catch (err) {
     console.error("Error fetching uploads:", err);
     res.status(500).json({ success: false, message: "Failed to fetch uploads" });
