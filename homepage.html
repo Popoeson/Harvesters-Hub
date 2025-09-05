@@ -505,19 +505,18 @@ function timeAgo(date) {
     if (!upload._id) return;
 
     const res = await fetch(`${API_URL}/api/uploads/${upload._id}/like`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ deviceId: getDeviceId() })
-    });
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ deviceId: getDeviceId() })
+});
 
-    if (!res.ok) {
-      const errorData = await res.json();
-      console.error("Failed to like/unlike:", errorData);
-      showMessage(errorData.error || "Failed to like/unlike ❌");
-      return;
-    }
+const data = await res.json(); // only once
 
-    const data = await res.json();
+if (!res.ok) {
+  console.error("Failed to like/unlike:", data);
+  showMessage(data.error || "Failed to like/unlike ❌");
+  return;
+        }
 
     // Update local upload object
     upload.likes = data.likes;
