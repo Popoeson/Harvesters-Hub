@@ -523,8 +523,8 @@ async function loadSidebarUser() {
     if (data.success) {
       const userData = data.data;
 
-      document.getElementById("sidebarUserName").textContent = userData.name;
-      document.getElementById("sidebarUserLogo").src = userData.logo; 
+      document.getElementById("sidebarUserName").textContent = user.name;
+      document.getElementById("sidebarUserLogo").src = user.logo; 
       // 👆 logo here should already be your Cloudinary URL stored in MongoDB
     }
   } catch (err) {
