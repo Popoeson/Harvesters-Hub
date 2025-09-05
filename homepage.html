@@ -376,7 +376,7 @@ function timeAgo(date) {
   return "Just now";
 }
 
-function renderPosts(uploads) {
+    function renderPosts(uploads) {
   const feed = document.getElementById("feed");
   feed.innerHTML = "";
 
@@ -421,83 +421,84 @@ function renderPosts(uploads) {
       mediaEl.src = upload.fileUrl;
     }
 
-    // Build post
+     mediaEl.addEventListener("click", () => {
+          window.location.href = `post.html?id=${upload._id}`;
+        });
+    
+
+    // ✅ Caption
+    const caption = document.createElement("div");
+    caption.className = "caption";
+    caption.textContent = upload.comments || "";
+
+    // ✅ Actions
+    const actions = document.createElement("div");
+    actions.className = "actions";
+
+    const likeIcon = document.createElement("i");
+    likeIcon.className = upload.liked
+      ? "fa-solid fa-heart liked"
+      : "fa-regular fa-heart";
+
+    const shareIcon = document.createElement("i");
+    shareIcon.className = "fa-solid fa-share";
+
+    const downloadIcon = document.createElement("i");
+    downloadIcon.className = "fa-solid fa-download";
+
+    actions.appendChild(likeIcon);
+    actions.appendChild(shareIcon);
+    actions.appendChild(downloadIcon);
+
+    const likesCount = document.createElement("div");
+    likesCount.className = "likes";
+    likesCount.textContent = `${upload.likes || 0} likes`;
+
+    // ✅ Event Listeners
+    likeIcon.addEventListener("click", () =>
+      handleLikeToggle(upload, likeIcon, likesCount)
+    );
+    mediaEl.addEventListener("dblclick", () =>
+      handleLikeToggle(upload, likeIcon, likesCount)
+    );
+
+    shareIcon.addEventListener("click", () => {
+      const postLink = `${window.location.origin}/post.html?id=${upload._id}`;
+      if (navigator.share) {
+        navigator.share({
+          title: "Check out this post!",
+          url: postLink
+        }).catch(err => console.log("Share cancelled", err));
+      } else {
+        navigator.clipboard.writeText(postLink).then(() => {
+          showMessage("🔗 Post link copied to clipboard ✅");
+        });
+      }
+    });
+
+    downloadIcon.addEventListener("click", () => {
+      if (confirm("Do you want to download this file?")) {
+        const a = document.createElement("a");
+        a.href = upload.fileUrl;
+        a.download = upload.fileUrl.split("/").pop();
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
+    });
+
+    // ✅ Build post
     post.appendChild(header);
     post.appendChild(mediaEl);
+    post.appendChild(caption);
+    post.appendChild(actions);
+    post.appendChild(likesCount);
 
     feed.appendChild(post);
   });
     }
 
-        mediaEl.addEventListener("click", () => {
-          window.location.href = `post.html?id=${upload._id}`;
-        });
-
-        const caption = document.createElement("div");
-        caption.className = "caption";
-        caption.textContent = upload.comments || "";
-
-        const actions = document.createElement("div");
-        actions.className = "actions";
-
-        const likeIcon = document.createElement("i");
-        likeIcon.className = upload.liked
-          ? "fa-solid fa-heart liked"
-          : "fa-regular fa-heart";
-
-        const shareIcon = document.createElement("i");
-        shareIcon.className = "fa-solid fa-share";
-
-        const downloadIcon = document.createElement("i");
-        downloadIcon.className = "fa-solid fa-download";
-
-        actions.appendChild(likeIcon);
-        actions.appendChild(shareIcon);
-        actions.appendChild(downloadIcon);
-
-        const likesCount = document.createElement("div");
-        likesCount.className = "likes";
-        likesCount.textContent = `${upload.likes || 0} likes`;
-
-        likeIcon.addEventListener("click", () =>
-          handleLikeToggle(upload, likeIcon, likesCount)
-        );
-        mediaEl.addEventListener("dblclick", () =>
-          handleLikeToggle(upload, likeIcon, likesCount)
-        );
-
-        shareIcon.addEventListener("click", () => {
-          const postLink = `${window.location.origin}/post.html?id=${upload._id}`;
-          if (navigator.share) {
-            navigator.share({
-              title: "Check out this post!",
-              url: postLink
-            }).catch(err => console.log("Share cancelled", err));
-          } else {
-            navigator.clipboard.writeText(postLink).then(() => {
-              showMessage("🔗 Post link copied to clipboard ✅");
-            });
-          }
-        });
-
-        downloadIcon.addEventListener("click", () => {
-          if (confirm("Do you want to download this file?")) {
-            const a = document.createElement("a");
-            a.href = upload.fileUrl;
-            a.download = upload.fileUrl.split("/").pop();
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-          }
-        });
-
-        post.appendChild(mediaEl);
-        post.appendChild(caption);
-        post.appendChild(actions);
-        post.appendChild(likesCount);
-        feed.appendChild(post);
-      });
-
+        
     async function handleLikeToggle(upload, icon, likesCountEl) {
       try {
         if (!upload._id) return;
