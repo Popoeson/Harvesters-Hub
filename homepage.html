@@ -502,14 +502,37 @@ document.getElementById("closeSidebar").addEventListener("click", () => {
   document.getElementById("sidebar").classList.remove("open");
 });
     // ✅ Populate sidebar with user info + role-specific buttons
-function renderSidebar() {
-  const user = JSON.parse(localStorage.getItem("user"));
+const user = JSON.parse(localStorage.getItem("user"));
+
+async function loadSidebarUser() {
   if (!user) return;
 
-  // User Info
-  document.getElementById("sidebarLogo").src = user.logo || "uploads/default-logo.png";
-  document.getElementById("sidebarName").textContent = user.name || "Unknown User";
+  let url = "";
+  if (user.role === "campus") {
+    url = `/api/campus/${user.id}`;
+  } else if (user.role === "district") {
+    url = `/api/district/${user.id}`;
+  } else if (user.role === "cell") {
+    url = `/api/cell/${user.id}`;
+  }
 
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (data.success) {
+      const userData = data.data;
+
+      document.getElementById("sidebarUserName").textContent = userData.name;
+      document.getElementById("sidebarUserLogo").src = userData.logo; 
+      // 👆 logo here should already be your Cloudinary URL stored in MongoDB
+    }
+  } catch (err) {
+    console.error("Error loading user sidebar info:", err);
+  }
+}
+
+loadSidebarUser();
   const sidebarButtons = document.getElementById("sidebarButtons");
   sidebarButtons.innerHTML = ""; // clear first
 
