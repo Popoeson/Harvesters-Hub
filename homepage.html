@@ -499,30 +499,42 @@ function timeAgo(date) {
     }
 
         
+    // Handle Likes 
     async function handleLikeToggle(upload, icon, likesCountEl) {
-      try {
-        if (!upload._id) return;
+  try {
+    if (!upload._id) return;
 
-        const res = await fetch(`${API_URL}/api/uploads/${upload._id}/like`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ deviceId: getDeviceId() })
-        });
+    const res = await fetch(`${API_URL}/api/uploads/${upload._id}/like`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ deviceId: getDeviceId() })
+    });
 
-        const data = await res.json();
-        if (!res.ok) return;
+    if (!res.ok) {
+      const errorData = await res.json();
+      console.error("Failed to like/unlike:", errorData);
+      showMessage(errorData.error || "Failed to like/unlike ❌");
+      return;
+    }
 
-        upload.likes = data.likes;
-        upload.liked = data.liked;
+    const data = await res.json();
 
-        likesCountEl.textContent = `${upload.likes} likes`;
-        icon.className = upload.liked ? "fa-solid fa-heart liked" : "fa-regular fa-heart";
+    // Update local upload object
+    upload.likes = data.likes;
+    upload.liked = data.liked;
 
-        if (upload.liked) saveLike(upload._id);
-        else removeLike(upload._id);
-      } catch (err) {
-        console.error("Error toggling like:", err);
-      }
+    // Update UI
+    likesCountEl.textContent = `${upload.likes} likes`;
+    icon.className = upload.liked ? "fa-solid fa-heart liked" : "fa-regular fa-heart";
+
+    // Save/remove in localStorage
+    if (upload.liked) saveLike(upload._id);
+    else removeLike(upload._id);
+
+  } catch (err) {
+    console.error("Error toggling like:", err);
+    showMessage("Server error ❌");
+  }
     }
 
     // --- LocalStorage Helpers ---
