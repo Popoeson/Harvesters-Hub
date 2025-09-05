@@ -289,14 +289,20 @@ app.post("/api/campus/login", async (req, res) => {
 });
 
 // --------------------------------------------------
-// Get All Campuses
+// Get Campus (all or single)
 // --------------------------------------------------
-app.get("/api/campus", async (req, res) => {
+app.get("/api/campus/:id?", async (req, res) => {
   try {
+    if (req.params.id) {
+      const campus = await Campus.findById(req.params.id);
+      if (!campus) return res.status(404).json({ success: false, message: "Campus not found" });
+      return res.json({ success: true, data: campus });
+    }
+
     const campuses = await Campus.find().sort({ createdAt: -1 });
-    res.status(200).json({ success: true, data: campuses });
+    res.json({ success: true, data: campuses });
   } catch (error) {
-    console.error("Error fetching campuses:", error);
+    console.error("Error fetching campus:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
 });
@@ -388,23 +394,27 @@ app.post("/api/district/login", async (req, res) => {
 });
 
 // --------------------------------------------------
-// Get all Districts
+// Get District (all or single)
 // --------------------------------------------------
-app.get("/api/district", async (req, res) => {
+app.get("/api/district/:id?", async (req, res) => {
   try {
+    if (req.params.id) {
+      const district = await District.findById(req.params.id).populate("campus", "name email");
+      if (!district) return res.status(404).json({ success: false, message: "District not found" });
+      return res.json({ success: true, data: district });
+    }
+
     const districts = await District.find()
-      .populate("campus", "name email") // populate campus name & email only
+      .populate("campus", "name email")
       .sort({ createdAt: -1 });
 
-    res.json({
-      success: true,
-      data: districts,
-    });
+    res.json({ success: true, data: districts });
   } catch (error) {
-    console.error("Error fetching districts:", error);
+    console.error("Error fetching district:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
 });
+      
 
 // ✅ Register Cell
 app.post("/api/cell/register", upload.single("logo"), async (req, res) => {
@@ -486,16 +496,27 @@ app.post("/api/cell/login", async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 });
-
-// ✅ Fetch all cells
-app.get("/api/cell", async (req, res) => {
+// --------------------------------------------------
+// Get Cell (all or single)
+// --------------------------------------------------
+app.get("/api/cell/:id?", async (req, res) => {
   try {
+    if (req.params.id) {
+      const cell = await Cell.findById(req.params.id)
+        .populate("campus", "name")
+        .populate("district", "name");
+      if (!cell) return res.status(404).json({ success: false, message: "Cell not found" });
+      return res.json({ success: true, data: cell });
+    }
+
     const cells = await Cell.find()
       .populate("campus", "name")
       .populate("district", "name");
+
     res.json({ success: true, data: cells });
-  } catch (err) {
-    res.status(500).json({ success: false, message: "Error fetching cells", error: err.message });
+  } catch (error) {
+    console.error("Error fetching cell:", error);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 });
 
