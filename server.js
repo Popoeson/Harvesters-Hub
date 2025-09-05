@@ -189,13 +189,18 @@ app.post("/api/uploads/:id/like", async (req, res) => {
     const { deviceId } = req.body;
     if (!deviceId) return res.status(400).json({ error: "deviceId required" });
 
-    const image = await Image.findById(req.params.id);
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: "Invalid image ID" });
+    }
+
+    const image = await Image.findById(id);
     if (!image) return res.status(404).json({ error: "Image not found" });
 
     const already = image.likedBy.includes(deviceId);
     if (already) {
       image.likes = Math.max(0, image.likes - 1);
-      image.likedBy = image.likedBy.filter(id => id !== deviceId);
+      image.likedBy = image.likedBy.filter(d => d !== deviceId);
     } else {
       image.likes += 1;
       image.likedBy.push(deviceId);
@@ -208,7 +213,6 @@ app.post("/api/uploads/:id/like", async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
-
 // ✅ Single Post View Route (use Image model)
 app.get("/api/uploads/:id", async (req, res) => {
   try {
