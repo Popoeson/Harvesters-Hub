@@ -154,7 +154,7 @@
 
     <div class="controls">
       <input id="fileInput" type="file" accept="image/*,video/*" multiple />
-      <textarea id="commentInput" placeholder="Comments ✍️"></textarea>
+      <textarea id="commentInput" placeholder="Place your captions ✍️"></textarea>
     </div>
 
     <div id="preview" class="preview-grid"></div>
@@ -163,85 +163,86 @@
     <div class="spinner" id="spinner"></div>
     <div id="message" class="msg"></div>
   </div>
-
   <script>
     const fileInput = document.getElementById("fileInput");
     const commentInput = document.getElementById("commentInput");
     const preview = document.getElementById("preview");
     const uploadBtn = document.getElementById("uploadBtn");
     const message = document.getElementById("message");
-    const spinner = document.getElementById("spinner");
 
     let files = [];
 
+    // Preview files when chosen
     fileInput.addEventListener("change", () => {
       files = Array.from(fileInput.files);
       preview.innerHTML = "";
 
       files.forEach(file => {
-        const card = document.createElement("div");
-        card.classList.add("card");
-
-        if (file.type.startsWith("image/")) {
-          const img = document.createElement("img");
-          img.src = URL.createObjectURL(file);
-          card.appendChild(img);
-        } else if (file.type.startsWith("video/")) {
-          const video = document.createElement("video");
-          video.src = URL.createObjectURL(file);
-          video.controls = true;
-          card.appendChild(video);
-        }
-
-        preview.appendChild(card);
+        const reader = new FileReader();
+        reader.onload = e => {
+          const card = document.createElement("div");
+          card.className = "card";
+          card.innerHTML = `<img src="${e.target.result}" alt="preview">`;
+          preview.appendChild(card);
+        };
+        reader.readAsDataURL(file);
       });
     });
 
+    // Upload handler
     uploadBtn.addEventListener("click", async () => {
       message.textContent = "";
       message.className = "msg";
 
       if (files.length === 0) {
-        message.textContent = "Please select at least one file.";
+        message.textContent = "Please select at least one image.";
         message.classList.add("error");
         return;
       }
 
-      const comment = commentInput.value.trim();
+      const comments = commentInput.value.trim();
+
       uploadBtn.disabled = true;
-      spinner.style.display = "inline-block";
-
-      const formData = new FormData();
-      files.forEach(file => formData.append("files", file));
-      formData.append("comment", comment);
-
       try {
+        // Build FormData: multiple files under "images", plus one "comments"
+        const formData = new FormData();
+        files.forEach(f => formData.append("images", f));
+        formData.append("comments", comments);
+
         const res = await fetch("https://harvesters-hub-fbgo.onrender.com/api/upload", {
           method: "POST",
           body: formData
         });
 
-        const data = await res.json();
-
-        if (res.ok) {
-          message.textContent = "✅ Upload successful!";
-          message.classList.add("success");
-          preview.innerHTML = "";
-          fileInput.value = "";
-          commentInput.value = "";
-          files = [];
-        } else {
-          message.textContent = data.error || "❌ Upload failed.";
-          message.classList.add("error");
+        // If not OK, try to extract error JSON (or text)
+        if (!res.ok) {
+          let errText = "";
+          try { errText = (await res.json()).message; }
+          catch { errText = await res.text(); }
+          throw new Error(errText || `Upload failed with status ${res.status}`);
         }
+
+        const data = await res.json();
+        if (!data.success) {
+          throw new Error(data.message || "Upload failed");
+        }
+
+        message.textContent = data.message || "Uploaded successfully!";
+        message.classList.add("success");
+
+        // Reset UI
+        fileInput.value = "";
+        commentInput.value = "";
+        preview.innerHTML = "";
+        files = [];
       } catch (err) {
-        message.textContent = "Server error. Try again.";
+        console.error("Upload error:", err);
+        message.textContent = "Error: " + err.message;
         message.classList.add("error");
       } finally {
         uploadBtn.disabled = false;
-        spinner.style.display = "none";
       }
     });
-  </script>
+      </script>
 </body>
 </html>
