@@ -123,8 +123,11 @@
         // Save role & user info in localStorage
      //   localStorage.setItem("user", JSON.stringify(data));
         localStorage.setItem("user", JSON.stringify({
-  id: user._id,        // from MongoDB
-  role: "campus"       // or "district" / "cell"
+  id: data.user.id,
+  role: data.role,
+  name: data.user.name,
+  email: data.user.email,
+  logo: data.user.logo
 }));
 
         // Redirect
