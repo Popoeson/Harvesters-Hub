@@ -134,17 +134,35 @@
 
       const post = result.data;
 
-      document.getElementById("post-container").innerHTML = `
-        <img src="${post.url}" alt="Uploaded Image">
-        <div class="caption">${post.comments || "No caption"}</div>
-        <div class="icons">
-          <span>❤️</span>
-          <span id="share-btn">🔗</span>
-          <a href="${post.url}" download>⬇️</a>
-        </div>
-        <div class="likes">${post.likes || 0} likes</div>
-      `;
-
+    //  document.getElementById("post-container").innerHTML = `
+      //  <img src="${post.url}" alt="Uploaded Image">
+      //  <div class="caption">${post.comments || "No caption"}</div>
+ //       <div class="icons">
+      //    <span>❤️</span>
+//          <span id="share-btn">🔗</span>
+   //       <a href="${post.url}" download>⬇️</a>
+//        </div>
+//        <div class="likes">${post.likes || 0} likes</div>
+  //    `;
+//<div id="post-container">
+  document.getElementById("post-container").innerHTML = `
+  <img src="${post.url}" alt="Uploaded Image">
+  <div class="caption">${post.comments || "No caption"}</div>
+  <div class="icons">
+    <!-- Like -->
+    <i class="${post.liked ? "fa-solid fa-heart liked" : "fa-regular fa-heart"}" id="like-btn"></i>
+    
+    <!-- Share -->
+    <i class="fa-solid fa-share" id="share-btn"></i>
+    
+    <!-- Download -->
+    <a href="${post.url}" download>
+      <i class="fa-solid fa-download"></i>
+    </a>
+  </div>
+  <div class="likes">${post.likes || 0} likes</div>
+</div>
+`;
       // Share button
 document.getElementById("share-btn").addEventListener("click", () => {
   const shareUrl = `https://harvesters-hub.vercel.app/post.html?id=${postId}`;
