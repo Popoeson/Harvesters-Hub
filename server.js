@@ -206,13 +206,16 @@ app.post("/api/uploads/:id/like", async (req, res) => {
       image.likedBy.push(deviceId);
     }
 
-    await image.save();
+    // ✅ Skip validation for like/unlike updates
+    await image.save({ validateBeforeSave: false });
+
     res.json({ likes: image.likes, liked: !already });
   } catch (err) {
     console.error("Like/unlike error:", err);
     res.status(500).json({ error: "Server error" });
   }
 });
+
 // ✅ Single Post View Route (use Image model)
 app.get("/api/uploads/:id", async (req, res) => {
   try {
