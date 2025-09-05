@@ -574,10 +574,16 @@ app.post("/api/universal-login", async (req, res) => {
       return res.status(400).json({ message: "Invalid password" });
     }
 
+    // ✅ Return role + user details (with logo)
     res.json({
       message: "Login successful",
       role,
-      user: { id: user._id, name: user.name || user.email, email: user.email }
+      user: {
+        id: user._id,
+        name: user.name || user.email,
+        email: user.email,
+        logo: user.logo || ""   // 👈 include logo if exists
+      }
     });
 
   } catch (err) {
