@@ -146,7 +146,7 @@ app.post("/api/upload", upload.array("files"), async (req, res) => {
       req.files.map(file => {
         // Detect file type
         const isVideo = file.mimetype.startsWith("video");
-        const newUpload = new Upload({
+        const newImage = new Image({
           url: file.path,            // Cloudinary URL
           type: isVideo ? "video" : "image",
           comment,
@@ -157,7 +157,7 @@ app.post("/api/upload", upload.array("files"), async (req, res) => {
           uploaderName,
           uploaderLogo
         });
-        return newUpload.save();
+        return newImage.save();
       })
     );
 
@@ -175,7 +175,7 @@ app.post("/api/upload", upload.array("files"), async (req, res) => {
 // GET all uploads
 app.get("/api/uploads", async (req, res) => {
   try {
-    const uploads = await Upload.find().sort({ createdAt: -1 });
+    const uploads = await Image.find().sort({ createdAt: -1 });
     res.json({ success: true, data: uploads });
   } catch (err) {
     console.error("Error fetching uploads:", err);
