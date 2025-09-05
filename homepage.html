@@ -286,46 +286,108 @@
   <script>
     const API_URL = "https://harvesters-hub-fbgo.onrender.com";
 
-    async function fetchUploads() {
-      try {
-        const res = await fetch(`${API_URL}/api/uploads`);
-        const json = await res.json();
+        async function fetchUploads() {
+  try {
+    const res = await fetch(`${API_URL}/api/uploads`);
+    const json = await res.json();
 
-        if (!json.success) throw new Error("Failed to fetch uploads");
+    if (!json.success) throw new Error("Failed to fetch uploads");
 
-        const uploads = json.data.map(u => ({
-          _id: u._id,
-          fileUrl: u.url || u.secure_url,
-          fileType: u.resource_type || "image",
-          likes: u.likes || 0,
-          comments: u.comments || "",
-          liked: isPostLiked(u._id)
-        }));
+    const uploads = json.data.map(u => ({
+      _id: u._id,
+      fileUrl: u.url,
+      fileType: u.type || "image",  // ✅ now from schema
+      likes: u.likes || 0,
+      comments: u.comments || "",
+      liked: isPostLiked(u._id),
 
-        renderPosts(uploads);
-      } catch (err) {
-        console.error("Error fetching uploads:", err);
-      }
+      // ✅ uploader info
+      uploaderName: u.uploaderName,
+      uploaderLogo: u.uploaderLogo,
+      uploaderRole: u.uploaderRole,
+      createdAt: u.createdAt
+    }));
+
+    renderPosts(uploads);
+  } catch (err) {
+    console.error("Error fetching uploads:", err);
+  }
+}
+
+// Helper: format time ago
+function timeAgo(date) {
+  const seconds = Math.floor((new Date() - new Date(date)) / 1000);
+
+  let interval = Math.floor(seconds / 31536000);
+  if (interval >= 1) return interval + " year" + (interval > 1 ? "s" : "") + " ago";
+
+  interval = Math.floor(seconds / 2592000);
+  if (interval >= 1) return interval + " month" + (interval > 1 ? "s" : "") + " ago";
+
+  interval = Math.floor(seconds / 86400);
+  if (interval >= 1) return interval + " day" + (interval > 1 ? "s" : "") + " ago";
+
+  interval = Math.floor(seconds / 3600);
+  if (interval >= 1) return interval + " hr" + (interval > 1 ? "s" : "") + " ago";
+
+  interval = Math.floor(seconds / 60);
+  if (interval >= 1) return interval + " min" + (interval > 1 ? "s" : "") + " ago";
+
+  return "Just now";
+}
+
+function renderPosts(uploads) {
+  const feed = document.getElementById("feed");
+  feed.innerHTML = "";
+
+  uploads.forEach(upload => {
+    const post = document.createElement("div");
+    post.className = "post";
+    post.id = `post-${upload._id}`;
+
+    // ✅ Uploader header
+    const header = document.createElement("div");
+    header.className = "post-header";
+
+    const logo = document.createElement("img");
+    logo.src = upload.uploaderLogo || "default-logo.png";
+    logo.alt = `${upload.uploaderName}'s logo`;
+    logo.className = "uploader-logo";
+
+    const info = document.createElement("div");
+    info.className = "uploader-info";
+
+    const name = document.createElement("h4");
+    name.textContent = upload.uploaderName;
+
+    const time = document.createElement("span");
+    time.className = "post-time";
+    time.textContent = timeAgo(upload.createdAt);
+
+    info.appendChild(name);
+    info.appendChild(time);
+
+    header.appendChild(logo);
+    header.appendChild(info);
+
+    // ✅ Media (image or video)
+    let mediaEl;
+    if (upload.fileType === "video") {
+      mediaEl = document.createElement("video");
+      mediaEl.src = upload.fileUrl;
+      mediaEl.controls = true;
+    } else {
+      mediaEl = document.createElement("img");
+      mediaEl.src = upload.fileUrl;
     }
 
-    function renderPosts(uploads) {
-      const feed = document.getElementById("feed");
-      feed.innerHTML = "";
+    // Build post
+    post.appendChild(header);
+    post.appendChild(mediaEl);
 
-      uploads.forEach(upload => {
-        const post = document.createElement("div");
-        post.className = "post";
-        post.id = `post-${upload._id}`;
-
-        let mediaEl;
-        if (upload.fileType === "video") {
-          mediaEl = document.createElement("video");
-          mediaEl.src = upload.fileUrl;
-          mediaEl.controls = true;
-        } else {
-          mediaEl = document.createElement("img");
-          mediaEl.src = upload.fileUrl;
-        }
+    feed.appendChild(post);
+  });
+    }
 
         mediaEl.addEventListener("click", () => {
           window.location.href = `post.html?id=${upload._id}`;
