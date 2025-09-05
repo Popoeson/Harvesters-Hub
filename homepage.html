@@ -502,61 +502,43 @@ document.getElementById("closeSidebar").addEventListener("click", () => {
   document.getElementById("sidebar").classList.remove("open");
 });
     // ✅ Populate sidebar with user info + role-specific buttons
-const user = JSON.parse(localStorage.getItem("user"));
+     // Get user from localStorage
+  const user = JSON.parse(localStorage.getItem("user"));
 
-async function loadSidebarUser() {
-  if (!user) return;
+  function loadSidebarUser() {
+    if (!user) return;
 
-  let url = "";
-  if (user.role === "campus") {
-    url = `/api/campus/${user.id}`;
-  } else if (user.role === "district") {
-    url = `/api/district/${user.id}`;
-  } else if (user.role === "cell") {
-    url = `/api/cell/${user.id}`;
+    // Set name & logo directly from localStorage
+    document.getElementById("sidebarUserName").textContent = user.name || "";
+    document.getElementById("sidebarUserLogo").src = user.logo || "default-logo.png"; 
   }
 
-  try {
-    const res = await fetch(url);
-    const data = await res.json();
+  loadSidebarUser();
 
-    if (data.success) {
-      const userData = data.data;
-
-      document.getElementById("sidebarUserName").textContent = user.name;
-      document.getElementById("sidebarUserLogo").src = user.logo; 
-      // 👆 logo here should already be your Cloudinary URL stored in MongoDB
-    }
-  } catch (err) {
-    console.error("Error loading user sidebar info:", err);
-  }
-}
-
-loadSidebarUser();
+  // Sidebar buttons
   const sidebarButtons = document.getElementById("sidebarButtons");
-  sidebarButtons.innerHTML = ""; // clear first
+  sidebarButtons.innerHTML = "";
 
   let buttons = [];
-  if (user.role === "campus") {
+  if (user && user.role === "campus") {
     buttons = [
       { label: "Register District", link: "district-registration.html" },
       { label: "View Districts", link: "district-dashboard.html" },
       { label: "Register Cell", link: "cell-registration.html" },
       { label: "View Cells", link: "cell-dashboard.html" }
     ];
-  } else if (user.role === "district") {
+  } else if (user && user.role === "district") {
     buttons = [
       { label: "Register Cell", link: "cell-registration.html" },
       { label: "View Cells", link: "cell-dashboard.html" }
     ];
-  } else if (user.role === "cell") {
+  } else if (user && user.role === "cell") {
     buttons = [
       { label: "Register Members", link: "cellMembership-registration.html" },
       { label: "View Members", link: "members.html" }
     ];
   }
 
-  // Render buttons
   buttons.forEach(btn => {
     const a = document.createElement("a");
     a.href = btn.link;
@@ -564,7 +546,7 @@ loadSidebarUser();
     a.className = "sidebar-btn";
     sidebarButtons.appendChild(a);
   });
-
+    
 // ✅ Logout handler
 document.getElementById("logoutBtn").addEventListener("click", () => {
   localStorage.removeItem("user"); // clear login
@@ -577,5 +559,3 @@ document.getElementById("menuBtn").addEventListener("click", () => {
   document.getElementById("sidebar").classList.add("open");
 });
   </script>
-</body>
-      </html>
