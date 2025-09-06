@@ -685,6 +685,21 @@ app.get("/api/members", async (req, res) => {
   }
 });
 
+//=======================
+// 🔴 Fetch Live Feeds
+//=======================
+app.get("/api/live", async (req, res) => {
+  try {
+    const response = await fetch(
+      `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${CHANNEL_ID}&eventType=live&type=video&key=${YOUTUBE_API_KEY}`
+    );
+    const data = await response.json();
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch live data" });
+  }
+});
+
 // Global error handler – always return JSON
 app.use((err, req, res, next) => {
   console.error("Unhandled server error:", err);
