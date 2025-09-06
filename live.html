@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YouTube Live Feed</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f9f9f9;
+      margin: 0;
+      padding: 20px;
+    }
+
+    /* 🔴 Pinned live area */
+    #pinned-live-area {
+      margin: 15px auto;
+      max-width: 600px;
+    }
+
+    /* 🎥 Live card style */
+    .live-card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      padding: 15px;
+      margin-bottom: 20px;
+      overflow: hidden;
+      text-align: center;
+      border: 2px solid transparent;
+      transition: border-color 0.3s ease;
+      position: relative;
+    }
+
+    .live-card h2 {
+      font-size: 1.2em;
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+
+    .live-card iframe {
+      width: 100%;
+      height: 315px;
+      border-radius: 8px;
+      display: block;
+    }
+
+    /* ⚫ When live ended */
+    .live-card.ended iframe {
+      filter: blur(4px) grayscale(60%);
+      pointer-events: none;
+    }
+
+    .live-card.ended::after {
+      content: "⚫ Live Ended";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0,0,0,0.6);
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 1.1em;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    /* Feed container */
+    #feed-container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .post {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+      padding: 15px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Pinned Live Area -->
+  <div id="pinned-live-area"></div>
+
+  <!-- Feed Container -->
+  <div id="feed-container">
+    <!-- Example static posts -->
+    <div class="post">Post 1 content here...</div>
+    <div class="post">Post 2 content here...</div>
+  </div>
+
+  <script>
+    const PINNED_AREA = document.getElementById("pinned-live-area");
+    const FEED = document.getElementById("feed-container");
+    let liveCard = null; // store reference so we can move it around
+
+    async function checkLiveStream() {
+      try {
+        // 🔐 Call your backend instead of YouTube directly
+        const res = await fetch("https://harvesters-hub-fbgo.onrender.com/api/live");
+        const data = await res.json();
+
+        // If live stream is active
+        if (data.items && data.items.length > 0) {
+          const videoId = data.items[0].id.videoId;
+          const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+
+          if (!liveCard) {
+            liveCard = document.createElement("div");
+            liveCard.className = "live-card";
+          }
+
+          liveCard.classList.remove("ended");
+          liveCard.innerHTML = `
+            <h2 style="color:red;">🔴 Live Now</h2>
+            <iframe src="${embedUrl}" 
+              frameborder="0" 
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+              allowfullscreen>
+            </iframe>
+          `;
+
+          if (!PINNED_AREA.contains(liveCard)) {
+            PINNED_AREA.appendChild(liveCard);
+          }
+        } else {
+          // Live has ended
+          if (!liveCard) {
+            liveCard = document.createElement("div");
+            liveCard.className = "live-card ended";
+          } else {
+            liveCard.classList.add("ended");
+          }
+
+          liveCard.innerHTML = `
+            <h2>⚫ Live Ended</h2>
+            <iframe src="about:blank"></iframe>
+          `;
+
+          if (!FEED.contains(liveCard)) {
+            FEED.prepend(liveCard); // drop it into feed like a normal post
+          }
+
+          PINNED_AREA.innerHTML = ""; // clear pinned section
+        }
+      } catch (err) {
+        console.error("Error checking live:", err);
+      }
+    }
+
+    // Run initially + repeat every 1 min
+    checkLiveStream();
+    setInterval(checkLiveStream, 60000);
+  </script>
+</body>
+</html>
