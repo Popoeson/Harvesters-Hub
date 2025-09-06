@@ -41,6 +41,10 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
+//-----------YouTube---------------
+const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
+const CHANNEL_ID = process.env.CHANNEL_ID;
+
 // Storage: sends files straight to Cloudinary
 const storage = new CloudinaryStorage({
   cloudinary,
