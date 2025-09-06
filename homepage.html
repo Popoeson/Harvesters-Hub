@@ -31,6 +31,28 @@
       transform: translateY(-100%);
     }
 
+    /* Subtle circle login button */
+.hidden-login {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #333;          /* dark circle */
+  opacity: 0.2;              /* semi-transparent to look hidden */
+  cursor: pointer;
+  transition: opacity 0.3s ease, background 0.3s ease;
+}
+
+/* When hovered or tapped */
+.hidden-login:hover {
+  opacity: 0.6;              /* slightly more visible */
+  background: #555;          /* little contrast */
+}
+
+
+
     /* ✅ Post */
   .post {
   max-width: 400px;
@@ -278,11 +300,21 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
-  <header>
+<!--  <header>
     <div class="navbar">
       <img src="uploads/harvesters.png" alt="Harvesters Logo">
       <h1>Harvesters Hub 😊</h1>
     </div>
+  </header> -->
+
+  <header>
+  <div class="navbar">
+    <img src="uploads/harvesters.png" alt="Harvesters Logo">
+    <h1>Harvesters Hub 😊</h1>
+  </div>
+
+  <!-- Hidden login button -->
+  <a href="login.html" class="hidden-login"></a>
   </header>
 
   <div id="feed"></div>
