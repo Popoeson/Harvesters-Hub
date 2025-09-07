@@ -671,13 +671,26 @@ app.get("/api/cells/by-district/:districtId", async (req, res) => {
 });
 
 // ======================
-// Fetch All Members 
+// Fetch Members (filtered by role)
 // ======================
 app.get("/api/members", async (req, res) => {
   try {
-    const members = await Member.find()
+    const userType = req.query.userType; // "campus", "district", "cell"
+    const userId = req.query.userId;     // the ID of the district or cell
+
+    let filter = {};
+
+    if (userType === "cell") {
+      filter.cell = userId; // only members in this cell
+    } else if (userType === "district") {
+      filter.district = userId; // only members in this district
+    }
+    
+
+    const members = await Member.find(filter)
       .populate("district", "name")
       .populate("cell", "name");
+
     res.json(members);
   } catch (err) {
     console.error("Error fetching members:", err);
