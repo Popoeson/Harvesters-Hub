@@ -671,21 +671,23 @@ app.get("/api/cells/by-district/:districtId", async (req, res) => {
 });
 
 // ======================
-// Fetch Members (filtered by role)
+// Fetch Members (filtered by roleId)
 // ======================
 app.get("/api/members", async (req, res) => {
   try {
-    const userType = req.query.userType; // "campus", "district", "cell"
-    const userId = req.query.userId;     // the ID of the district or cell
+    const roleId = parseInt(req.query.roleId); // e.g., 1 = campus, 2 = district, 3 = cell
+    const userId = req.query.userId;          // the actual logged-in entity's ID
 
     let filter = {};
 
-    if (userType === "cell") {
-      filter.cell = userId; // only members in this cell
-    } else if (userType === "district") {
-      filter.district = userId; // only members in this district
+    if (roleId === 3) {
+      // Cell leader → only members in this cell
+      filter.cell = userId;
+    } else if (roleId === 2) {
+      // District leader → only members in this district
+      filter.district = userId;
     }
-    
+    // roleId === 1 (campus) → see all members (no filter)
 
     const members = await Member.find(filter)
       .populate("district", "name")
