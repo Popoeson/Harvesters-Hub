@@ -124,8 +124,8 @@
       }
 
       // ✅ Pass roleId + userId to backend instead of userType
-      const res = await fetch(
-  `${BASE_URL}/api/members?userType=${session.role}&userId=${session.userId}`
+        const res = await fetch(
+  `${BASE_URL}/api/members?roleId=${session.role}&userId=${session.id}`
 );
       const data = await res.json();
 
