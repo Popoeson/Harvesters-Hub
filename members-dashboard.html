@@ -108,61 +108,73 @@
     </tbody>
   </table>
 
-  <script>
-    const API_URL = "https://harvesters-hub-fbgo.onrender.com/api/members"; // adjust if needed
-    let members = [];
+ <script>
+  const BASE_URL = "https://harvesters-hub-fbgo.onrender.com";
 
-    async function fetchMembers() {
-      try {
-        const res = await fetch(API_URL);
-        const data = await res.json();
+  let members = [];
 
-        if (Array.isArray(data)) {
-          members = data;
-          renderTable(members);
-        } else {
-          alert("Failed to load members.");
-        }
-      } catch (error) {
-        console.error("Error fetching members:", error);
+  async function fetchMembers() {
+    try {
+      // ✅ Get user session (saved at login)
+      const session = JSON.parse(localStorage.getItem("userSession"));
+      if (!session) {
+        alert("Not logged in");
+        window.location.href = "login.html";
+        return;
       }
-    }
 
-    function renderTable(list) {
-      const tbody = document.querySelector("#membersTable tbody");
-      tbody.innerHTML = "";
-
-      list.forEach((member, index) => {
-        const row = `
-          <tr>
-            <td>${index + 1}</td>
-            <td>${member.fullName}</td>
-            <td>${member.email}</td>
-            <td>${member.phone}</td>
-            <td>${member.address}</td>
-            <td>${member.district?.name || "N/A"}</td>
-            <td>${member.cell?.name || "N/A"}</td>
-          </tr>
-        `;
-        tbody.insertAdjacentHTML("beforeend", row);
-      });
-    }
-
-    function filterMembers() {
-      const query = document.getElementById("searchInput").value.toLowerCase();
-      const filtered = members.filter(m =>
-        m.fullName.toLowerCase().includes(query) ||
-        m.email.toLowerCase().includes(query) ||
-        m.phone.toLowerCase().includes(query) ||
-        m.address.toLowerCase().includes(query) ||
-        (m.district?.name || "").toLowerCase().includes(query) ||
-        (m.cell?.name || "").toLowerCase().includes(query)
+      // Pass userType + userId to backend
+      const res = await fetch(
+        `${BASE_URL}/api/members?userType=${session.userType}&userId=${session.userId}`
       );
-      renderTable(filtered);
-    }
+      const data = await res.json();
 
-    // Run on load
-    fetchMembers();
-  </script>
+      if (Array.isArray(data)) {
+        members = data;
+        renderTable(members);
+      } else {
+        alert("Failed to load members.");
+      }
+    } catch (error) {
+      console.error("Error fetching members:", error);
+    }
+  }
+
+  function renderTable(list) {
+    const tbody = document.querySelector("#membersTable tbody");
+    tbody.innerHTML = "";
+
+    list.forEach((member, index) => {
+      const row = `
+        <tr>
+          <td>${index + 1}</td>
+          <td>${member.fullName}</td>
+          <td>${member.email}</td>
+          <td>${member.phone}</td>
+          <td>${member.address}</td>
+          <td>${member.district?.name || "N/A"}</td>
+          <td>${member.cell?.name || "N/A"}</td>
+        </tr>
+      `;
+      tbody.insertAdjacentHTML("beforeend", row);
+    });
+  }
+
+  function filterMembers() {
+    const query = document.getElementById("searchInput").value.toLowerCase();
+    const filtered = members.filter(m =>
+      m.fullName.toLowerCase().includes(query) ||
+      m.email.toLowerCase().includes(query) ||
+      m.phone.toLowerCase().includes(query) ||
+      m.address.toLowerCase().includes(query) ||
+      (m.district?.name || "").toLowerCase().includes(query) ||
+      (m.cell?.name || "").toLowerCase().includes(query)
+    );
+    renderTable(filtered);
+  }
+
+  // Run on load
+  fetchMembers();
+ </script>
 </body>
 </html>
