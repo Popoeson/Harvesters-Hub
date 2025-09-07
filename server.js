@@ -673,21 +673,47 @@ app.get("/api/cells/by-district/:districtId", async (req, res) => {
 // ======================
 // Fetch Members (filtered by roleId)
 // ======================
+// app.get("/api/members", async (req, res) => {
+//  try {
+//    const roleId = parseInt(req.query.roleId); // e.g., 1 = campus, 2 = district, 3 = cell
+//    const userId = req.query.userId;          // the actual logged-in entity's ID
+
+//    let filter = {};
+
+//    if (roleId === 3) {
+      // Cell leader → only members in this cell
+//      filter.cell = userId;
+ //   } else if (roleId === 2) {
+//      // District leader → only members in this distric
+// filter.district = userId;
+//    }
+//    // roleId === 1 (campus) → see all members (no filter)
+
+//    const members = await Member.find(filter)
+// .populate("district", "name")
+//      .populate("cell", "name");
+
+//    res.json(members);
+//  } catch (err) {
+//    console.error("Error fetching members:", err);
+//    res.status(500).json({ message: "Server error" });
+//  }
+// });
+
+// ======================
+// Fetch Members (Cell users only for now)
+// ======================
 app.get("/api/members", async (req, res) => {
   try {
-    const roleId = parseInt(req.query.roleId); // e.g., 1 = campus, 2 = district, 3 = cell
-    const userId = req.query.userId;          // the actual logged-in entity's ID
+    const userType = req.query.userType; // "cell", "district", "campus"
+    const userId = req.query.userId;     // ID of the logged-in user
 
     let filter = {};
 
-    if (roleId === 3) {
-      // Cell leader → only members in this cell
-      filter.cell = userId;
-    } else if (roleId === 2) {
-      // District leader → only members in this district
-      filter.district = userId;
+    if (userType === "cell") {
+      // ✅ Ensure ObjectId type for query
+      filter.cell = new mongoose.Types.ObjectId(userId);
     }
-    // roleId === 1 (campus) → see all members (no filter)
 
     const members = await Member.find(filter)
       .populate("district", "name")
