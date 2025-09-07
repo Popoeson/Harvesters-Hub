@@ -705,14 +705,15 @@ app.get("/api/cells/by-district/:districtId", async (req, res) => {
 // ======================
 app.get("/api/members", async (req, res) => {
   try {
-    const userType = req.query.userType; // "cell", "district", "campus"
-    const userId = req.query.userId;     // ID of the logged-in user
+    const { roleId, userId } = req.query; 
 
     let filter = {};
 
-    if (userType === "cell") {
-      // ✅ Ensure ObjectId type for query
-      filter.cell = new mongoose.Types.ObjectId(userId);
+    if (roleId === "cell") {
+      if (!mongoose.Types.ObjectId.isValid(userId)) {
+        return res.status(400).json({ message: "Invalid cell ID" });
+      }
+      filter.cell = userId; // no need to wrap again
     }
 
     const members = await Member.find(filter)
@@ -722,7 +723,7 @@ app.get("/api/members", async (req, res) => {
     res.json(members);
   } catch (err) {
     console.error("Error fetching members:", err);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Server error", error: err.message });
   }
 });
 
