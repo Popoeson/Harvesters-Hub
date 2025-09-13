@@ -97,6 +97,31 @@ const districtSchema = new mongoose.Schema({
   logo: { type: String }
 }, { timestamps: true });
 
+const communitySchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  district: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "District",
+    required: true,
+  },
+  leader: {
+    type: String,
+    required: true,
+  },
+  leaderPhone: {
+    type: String,
+    required: true,
+  },
+  password: {
+    type: String,
+    required: true,
+  },
+}, { timestamps: true });
+
 const cellSchema = new mongoose.Schema({
   name: { type: String, required: true },
   campus: { type: mongoose.Schema.Types.ObjectId, ref: "Campus", required: true },
@@ -126,6 +151,7 @@ const Campus = mongoose.model("Campus", campusSchema);
 const District = mongoose.model("District", districtSchema);
 const Cell = mongoose.model("Cell",cellSchema);
 const Member = mongoose.model("Member",memberSchema);
+const Community= mongoose.model("Community", communitySchema);
 // ---------- Routes ----------
 
 // Health probe
@@ -450,6 +476,50 @@ app.get("/api/district/:id?", async (req, res) => {
   } catch (error) {
     console.error("Error fetching district:", error);
     res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+// Register community
+app.post("/", async (req, res) => {
+  try {
+    const { name, district, leader, leaderPhone, password } = req.body;
+
+    const existing = await Community.findOne({ name });
+    if (existing) {
+      return res.status(400).json({ message: "Community already exists" });
+    }
+
+    const community = new Community({ name, district, leader, leaderPhone, password });
+    await community.save();
+
+    res.status(201).json({ message: "Community registered successfully" });
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+});
+
+// Login community
+app.post("/login", async (req, res) => {
+  try {
+    const { name, password } = req.body;
+
+    const community = await Community.findOne({ name });
+    if (!community || community.password !== password) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
+
+    res.json({
+      message: "Login successful",
+      community: {
+        id: community._id,
+        name: community.name,
+        leader: community.leader,
+        leaderPhone: community.leaderPhone,
+        district: community.district,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: err.message });
   }
 });
       
