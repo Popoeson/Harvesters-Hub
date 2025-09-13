@@ -111,21 +111,27 @@
     const BASE_URL = "https://harvesters-hub-fbgo.onrender.com";
 
     // Load districts on page load
-    async function loadDistricts() {
-      try {
-        const res = await fetch(`${BASE_URL}/api/districts`);
-        const districts = await res.json();
+async function loadDistricts() {
+  try {
+    const res = await fetch(`${BASE_URL}/api/district`); // ✅ match backend route
+    const result = await res.json();
 
-        const select = document.getElementById("district");
-        districts.forEach(d => {
-          const option = document.createElement("option");
-          option.value = d._id;
-          option.textContent = d.name;
-          select.appendChild(option);
-        });
-      } catch (err) {
-        console.error("Error loading districts:", err);
-      }
+    if (!result.success) {
+      throw new Error(result.message || "Failed to fetch districts");
+    }
+
+    const districts = result.data; // ✅ unwrap data array
+    const select = document.getElementById("district");
+
+    districts.forEach(d => {
+      const option = document.createElement("option");
+      option.value = d._id;
+      option.textContent = d.name;
+      select.appendChild(option);
+    });
+  } catch (err) {
+    console.error("Error loading districts:", err);
+  }
     }
 
     // Handle form submission
