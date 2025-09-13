@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Register Community</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #fff;
+      padding: 12px 16px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .header img {
+      height: 30px;
+    }
+
+    .container {
+      background: #fff;
+      padding: 20px 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      width: 400px;
+      margin: 30px auto;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: bold;
+    }
+
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    button {
+      background: #28a745;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #218838;
+    }
+
+    .message {
+      text-align: center;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div class="header">
+    <img src="uploads/harvesters.png" alt="Logo">
+  </div>
+
+  <div class="container">
+    <h2>Register Community</h2>
+    <form id="communityForm">
+      <label for="name">Community Name</label>
+      <input type="text" id="name" name="name" required />
+
+      <label for="leader">Leader's Name</label>
+      <input type="text" id="leader" name="leader" required />
+
+      <label for="leaderPhone">Leader's Phone</label>
+      <input type="text" id="leaderPhone" name="leaderPhone" required />
+
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" required />
+
+      <label for="district">Select District</label>
+      <select id="district" name="district" required>
+        <option value="">-- Select District --</option>
+      </select>
+
+      <button type="submit">Register Community</button>
+    </form>
+
+    <div class="message" id="message"></div>
+  </div>
+
+  <script>
+    const BASE_URL = "https://harvesters-hub-fbgo.onrender.com";
+
+    // Load districts on page load
+    async function loadDistricts() {
+      try {
+        const res = await fetch(`${BASE_URL}/api/districts`);
+        const districts = await res.json();
+
+        const select = document.getElementById("district");
+        districts.forEach(d => {
+          const option = document.createElement("option");
+          option.value = d._id;
+          option.textContent = d.name;
+          select.appendChild(option);
+        });
+      } catch (err) {
+        console.error("Error loading districts:", err);
+      }
+    }
+
+    // Handle form submission
+    document.getElementById("communityForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const name = document.getElementById("name").value;
+      const leader = document.getElementById("leader").value;
+      const leaderPhone = document.getElementById("leaderPhone").value;
+      const password = document.getElementById("password").value;
+      const district = document.getElementById("district").value;
+
+      try {
+        const res = await fetch(`${BASE_URL}/api/communities`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, leader, leaderPhone, password, district })
+        });
+
+        const data = await res.json();
+        const messageEl = document.getElementById("message");
+
+        if (res.ok) {
+          messageEl.textContent = "✅ Community registered successfully!";
+          messageEl.style.color = "green";
+          document.getElementById("communityForm").reset();
+        } else {
+          messageEl.textContent = data.message || "❌ Failed to register community";
+          messageEl.style.color = "red";
+        }
+      } catch (err) {
+        console.error("Error registering community:", err);
+      }
+    });
+
+    // Run on load
+    loadDistricts();
+  </script>
+</body>
+</html>
