@@ -499,7 +499,7 @@ app.post("/api/communities", async (req, res) => {
 });
 
 // Get communities
-app.get("/", async (req, res) => {
+app.get("/api/get/communities", async (req, res) => {
   try {
     const communities = await Community.find()
       .populate("district", "name"); // Only return the district name
