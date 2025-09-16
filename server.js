@@ -498,6 +498,25 @@ app.post("/api/communities", async (req, res) => {
   }
 });
 
+// Get communities
+app.get("/", async (req, res) => {
+  try {
+    const communities = await Community.find()
+      .populate("district", "name"); // Only return the district name
+
+    res.json({
+      success: true,
+      data: communities
+    });
+  } catch (err) {
+    console.error("Error fetching communities:", err);
+    res.status(500).json({
+      success: false,
+      message: "Server error fetching communities"
+    });
+  }
+});
+
 // Login community
 app.post("/login", async (req, res) => {
   try {
