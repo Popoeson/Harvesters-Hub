@@ -62,10 +62,29 @@
       color: #fff;
       border: none;
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
     }
 
     button:hover {
       background: #218838;
+    }
+
+    .spinner {
+      border: 2px solid #fff;
+      border-top: 2px solid transparent;
+      border-radius: 50%;
+      width: 16px;
+      height: 16px;
+      animation: spin 0.6s linear infinite;
+      display: none;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
 
     .message {
@@ -101,7 +120,10 @@
         <option value="">-- Select District --</option>
       </select>
 
-      <button type="submit">Register Community</button>
+      <button type="submit" id="submitBtn">
+        <span id="btnText">Register Community</span>
+        <div class="spinner" id="spinner"></div>
+      </button>
     </form>
 
     <div class="message" id="message"></div>
@@ -111,32 +133,43 @@
     const BASE_URL = "https://harvesters-hub-fbgo.onrender.com";
 
     // Load districts on page load
-async function loadDistricts() {
-  try {
-    const res = await fetch(`${BASE_URL}/api/district`); // ✅ match backend route
-    const result = await res.json();
+    async function loadDistricts() {
+      try {
+        const res = await fetch(`${BASE_URL}/api/district`);
+        const result = await res.json();
 
-    if (!result.success) {
-      throw new Error(result.message || "Failed to fetch districts");
-    }
+        if (!result.success) {
+          throw new Error(result.message || "Failed to fetch districts");
+        }
 
-    const districts = result.data; // ✅ unwrap data array
-    const select = document.getElementById("district");
+        const districts = result.data;
+        const select = document.getElementById("district");
 
-    districts.forEach(d => {
-      const option = document.createElement("option");
-      option.value = d._id;
-      option.textContent = d.name;
-      select.appendChild(option);
-    });
-  } catch (err) {
-    console.error("Error loading districts:", err);
-  }
+        districts.forEach(d => {
+          const option = document.createElement("option");
+          option.value = d._id;
+          option.textContent = d.name;
+          select.appendChild(option);
+        });
+      } catch (err) {
+        console.error("Error loading districts:", err);
+      }
     }
 
     // Handle form submission
     document.getElementById("communityForm").addEventListener("submit", async (e) => {
       e.preventDefault();
+
+      const btnText = document.getElementById("btnText");
+      const spinner = document.getElementById("spinner");
+      const submitBtn = document.getElementById("submitBtn");
+      const messageEl = document.getElementById("message");
+
+      // Show spinner
+      btnText.textContent = "Registering...";
+      spinner.style.display = "inline-block";
+      submitBtn.disabled = true;
+
       const name = document.getElementById("name").value;
       const leader = document.getElementById("leader").value;
       const leaderPhone = document.getElementById("leaderPhone").value;
@@ -151,7 +184,6 @@ async function loadDistricts() {
         });
 
         const data = await res.json();
-        const messageEl = document.getElementById("message");
 
         if (res.ok) {
           messageEl.textContent = "✅ Community registered successfully!";
@@ -163,6 +195,13 @@ async function loadDistricts() {
         }
       } catch (err) {
         console.error("Error registering community:", err);
+        messageEl.textContent = "❌ Error registering community";
+        messageEl.style.color = "red";
+      } finally {
+        // Hide spinner
+        btnText.textContent = "Register Community";
+        spinner.style.display = "none";
+        submitBtn.disabled = false;
       }
     });
 
