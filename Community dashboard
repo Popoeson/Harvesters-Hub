@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Community Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f9f9f9;
+      margin: 0;
+      padding: 0;
+    }
+
+    .header {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #fff;
+      padding: 12px 16px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .header img {
+      height: 30px;
+    }
+
+    .dashboard {
+      max-width: 1200px;
+      margin: 30px auto;
+      padding: 20px;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    .search-box {
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .search-box input {
+      padding: 10px;
+      width: 300px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      transition: transform 0.2s;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+    }
+
+    .card img {
+      max-width: 100%;
+      height: 60px;
+      object-fit: cover;
+      border-radius: 10%;
+      margin-bottom: 10px;
+    }
+
+    .card h3 {
+      margin: 5px 0;
+      color: #333;
+      font-size: 18px;
+    }
+
+    .card p {
+      margin: 4px 0;
+      font-size: 14px;
+      color: #555;
+    }
+
+    .card .leader {
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    .card .phone {
+      margin-top: 8px;
+      font-size: 13px;
+      color: #0073e6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div class="header">
+    <img src="uploads/harvesters.png" alt="Logo">
+  </div>
+
+  <div class="dashboard">
+    <h2>🏘️ Community Dashboard</h2>
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="Search by community, district, or leader...">
+    </div>
+
+    <div class="grid" id="communityGrid">
+      <!-- Cards will be injected here -->
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = "https://harvesters-hub-fbgo.onrender.com/api";
+    const grid = document.getElementById("communityGrid");
+    const searchInput = document.getElementById("searchInput");
+
+    let communitiesData = [];
+
+    // Fetch communities
+    async function loadCommunities() {
+      try {
+        const res = await fetch(`${API_BASE}/communities`);
+        const data = await res.json();
+        if (data.success) {
+          communitiesData = data.data;
+          renderCommunities(communitiesData);
+        }
+      } catch (err) {
+        console.error("Error loading communities:", err);
+      }
+    }
+
+    // Render communities as cards
+    function renderCommunities(communities) {
+      grid.innerHTML = "";
+      if (communities.length === 0) {
+        grid.innerHTML = "<p style='text-align:center; grid-column:1/-1;'>No communities found.</p>";
+        return;
+      }
+
+      communities.forEach(community => {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <img src="${community.logo || 'uploads/default.png'}" alt="Logo">
+          <h3>${community.name}</h3>
+          <p>📍 District: ${community.district?.name || "N/A"}</p>
+          <p class="leader">👤 Leader: ${community.leader || "N/A"}</p>
+          <p class="phone"><i class="fa fa-phone"></i> ${community.leaderPhone || "N/A"}</p>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    // Search filter
+    searchInput.addEventListener("input", () => {
+      const term = searchInput.value.toLowerCase();
+      const filtered = communitiesData.filter(community =>
+        community.name.toLowerCase().includes(term) ||
+        (community.district?.name || "").toLowerCase().includes(term) ||
+        (community.leader || "").toLowerCase().includes(term)
+      );
+      renderCommunities(filtered);
+    });
+
+    // Init
+    loadCommunities();
+  </script>
+</body>
+</html>
