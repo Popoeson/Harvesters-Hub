@@ -120,6 +120,7 @@ const communitySchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  logo: String, // Cloudinary URL
 }, { timestamps: true });
 
 const cellSchema = new mongoose.Schema({
@@ -479,8 +480,8 @@ app.get("/api/district/:id?", async (req, res) => {
   }
 });
 
-// Register community
-app.post("/api/communities", async (req, res) => {
+// Register community with logo upload
+app.post("/api/communities", upload.single("logo"), async (req, res) => {
   try {
     const { name, district, leader, leaderPhone, password } = req.body;
 
@@ -489,10 +490,23 @@ app.post("/api/communities", async (req, res) => {
       return res.status(400).json({ message: "Community already exists" });
     }
 
-    const community = new Community({ name, district, leader, leaderPhone, password });
+    const logoUrl = req.file?.path; // Cloudinary adds `path` with the secure_url
+
+    const community = new Community({
+      name,
+      district,
+      leader,
+      leaderPhone,
+      password,
+      logo: logoUrl
+    });
+
     await community.save();
 
-    res.status(201).json({ message: "Community registered successfully" });
+    res.status(201).json({
+      message: "Community registered successfully",
+      community
+    });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: err.message });
   }
