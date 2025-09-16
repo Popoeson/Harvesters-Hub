@@ -141,7 +141,7 @@
     // Fetch communities
     async function loadCommunities() {
       try {
-        const res = await fetch(`${API_BASE}/communities`);
+        const res = await fetch(`${API_BASE}/api/get/communities`);
         const data = await res.json();
         if (data.success) {
           communitiesData = data.data;
