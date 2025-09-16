@@ -480,7 +480,7 @@ app.get("/api/district/:id?", async (req, res) => {
 });
 
 // Register community
-app.post("/", async (req, res) => {
+app.post("/api/communities", async (req, res) => {
   try {
     const { name, district, leader, leaderPhone, password } = req.body;
 
