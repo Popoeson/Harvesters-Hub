@@ -110,7 +110,7 @@
       <input type="text" id="leader" name="leader" required />
 
       <label for="leaderPhone">Leader's Phone</label>
-      <input type="phone" id="leaderPhone" name="leaderPhone" required />
+      <input type="tel" id="leaderPhone" name="leaderPhone" required />
 
       <label for="password">Password</label>
       <input type="password" id="password" name="password" required />
@@ -135,29 +135,29 @@
   <script>
   const BASE_URL = "https://harvesters-hub-fbgo.onrender.com";
 
-       // Load districts on page load  
-‎    async function loadDistricts() {  
-‎      try {  
-‎        const res = await fetch(`${BASE_URL}/api/district`);  
-‎        const result = await res.json();  
-‎  
-‎        if (!result.success) {  
-‎          throw new Error(result.message || "Failed to fetch districts");  
-‎        }  
-‎  
-‎        const districts = result.data;  
-‎        const select = document.getElementById("district");  
-‎  
-‎        districts.forEach(d => {  
-‎          const option = document.createElement("option");  
-‎          option.value = d._id;  
-‎          option.textContent = d.name;  
-‎          select.appendChild(option);  
-‎        });  
-‎      } catch (err) {  
-‎        console.error("Error loading districts:", err);  
-‎      }  
-‎    }  
+// Load districts on page load
+async function loadDistricts() {
+  try {
+    const res = await fetch(`${BASE_URL}/api/district`);
+    const result = await res.json();
+
+    if (!result.success) {
+      throw new Error(result.message || "Failed to fetch districts");
+    }
+
+    const districts = result.data;
+    const select = document.getElementById("district");
+
+    districts.forEach(d => {
+      const option = document.createElement("option");
+      option.value = d._id;
+      option.textContent = d.name;
+      select.appendChild(option);
+    });
+  } catch (err) {
+    console.error("Error loading districts:", err);
+  }
+    }
 
   document.getElementById("communityForm").addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -205,6 +205,8 @@
       submitBtn.disabled = false;
     }
   });
+    // Run on page load
+loadDistricts();
       </script>
 </body>
 </html>
