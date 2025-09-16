@@ -110,7 +110,7 @@
       <input type="text" id="leader" name="leader" required />
 
       <label for="leaderPhone">Leader's Phone</label>
-      <input type="text" id="leaderPhone" name="leaderPhone" required />
+      <input type="phone" id="leaderPhone" name="leaderPhone" required />
 
       <label for="password">Password</label>
       <input type="password" id="password" name="password" required />
@@ -119,6 +119,9 @@
       <select id="district" name="district" required>
         <option value="">-- Select District --</option>
       </select>
+
+      <label for="logo">Community Logo</label>
+      <input type="file" id="logo" name="logo" accept="image/*" required />
 
       <button type="submit" id="submitBtn">
         <span id="btnText">Register Community</span>
@@ -130,83 +133,54 @@
   </div>
 
   <script>
-    const BASE_URL = "https://harvesters-hub-fbgo.onrender.com";
+  const BASE_URL = "https://harvesters-hub-fbgo.onrender.com";
 
-    // Load districts on page load
-    async function loadDistricts() {
-      try {
-        const res = await fetch(`${BASE_URL}/api/district`);
-        const result = await res.json();
+  document.getElementById("communityForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-        if (!result.success) {
-          throw new Error(result.message || "Failed to fetch districts");
-        }
+    const btnText = document.getElementById("btnText");
+    const spinner = document.getElementById("spinner");
+    const submitBtn = document.getElementById("submitBtn");
+    const messageEl = document.getElementById("message");
 
-        const districts = result.data;
-        const select = document.getElementById("district");
+    btnText.textContent = "Registering...";
+    spinner.style.display = "inline-block";
+    submitBtn.disabled = true;
 
-        districts.forEach(d => {
-          const option = document.createElement("option");
-          option.value = d._id;
-          option.textContent = d.name;
-          select.appendChild(option);
-        });
-      } catch (err) {
-        console.error("Error loading districts:", err);
-      }
-    }
+    const formData = new FormData();
+    formData.append("name", document.getElementById("name").value);
+    formData.append("leader", document.getElementById("leader").value);
+    formData.append("leaderPhone", document.getElementById("leaderPhone").value);
+    formData.append("password", document.getElementById("password").value);
+    formData.append("district", document.getElementById("district").value);
+    formData.append("logo", document.getElementById("logo").files[0]);
 
-    // Handle form submission
-    document.getElementById("communityForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
+    try {
+      const res = await fetch(`${BASE_URL}/api/communities`, {
+        method: "POST",
+        body: formData // <-- send formData directly (no headers here!)
+      });
 
-      const btnText = document.getElementById("btnText");
-      const spinner = document.getElementById("spinner");
-      const submitBtn = document.getElementById("submitBtn");
-      const messageEl = document.getElementById("message");
+      const data = await res.json();
 
-      // Show spinner
-      btnText.textContent = "Registering...";
-      spinner.style.display = "inline-block";
-      submitBtn.disabled = true;
-
-      const name = document.getElementById("name").value;
-      const leader = document.getElementById("leader").value;
-      const leaderPhone = document.getElementById("leaderPhone").value;
-      const password = document.getElementById("password").value;
-      const district = document.getElementById("district").value;
-
-      try {
-        const res = await fetch(`${BASE_URL}/api/communities`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name, leader, leaderPhone, password, district })
-        });
-
-        const data = await res.json();
-
-        if (res.ok) {
-          messageEl.textContent = "✅ Community registered successfully!";
-          messageEl.style.color = "green";
-          document.getElementById("communityForm").reset();
-        } else {
-          messageEl.textContent = data.message || "❌ Failed to register community";
-          messageEl.style.color = "red";
-        }
-      } catch (err) {
-        console.error("Error registering community:", err);
-        messageEl.textContent = "❌ Error registering community";
+      if (res.ok) {
+        messageEl.textContent = "✅ Community registered successfully!";
+        messageEl.style.color = "green";
+        document.getElementById("communityForm").reset();
+      } else {
+        messageEl.textContent = data.message || "❌ Failed to register community";
         messageEl.style.color = "red";
-      } finally {
-        // Hide spinner
-        btnText.textContent = "Register Community";
-        spinner.style.display = "none";
-        submitBtn.disabled = false;
       }
-    });
-
-    // Run on load
-    loadDistricts();
-  </script>
+    } catch (err) {
+      console.error("Error registering community:", err);
+      messageEl.textContent = "❌ Error registering community";
+      messageEl.style.color = "red";
+    } finally {
+      btnText.textContent = "Register Community";
+      spinner.style.display = "none";
+      submitBtn.disabled = false;
+    }
+  });
+      </script>
 </body>
 </html>
