@@ -127,6 +127,7 @@ const cellSchema = new mongoose.Schema({
   name: { type: String, required: true },
   campus: { type: mongoose.Schema.Types.ObjectId, ref: "Campus", required: true },
   district: { type: mongoose.Schema.Types.ObjectId, ref: "District", required: true },
+  community: {type: mongoose.Schema.Types.ObjectId, ref: "Community", required: true},
   address: { type: String, required: true },
   leader: { type: String, required: true },
   phone: { type: String, required: true},
@@ -560,9 +561,9 @@ app.post("/login", async (req, res) => {
 // ✅ Register Cell
 app.post("/api/cell/register", upload.single("logo"), async (req, res) => {
   try {
-    const { name, campus, district, address, leader, phone, email, password } = req.body;
+    const { name, campus, district, community, address, leader, phone, email, password } = req.body;
 
-    if (!name || !campus || !district || !address || !leader || !phone || !email || !password) {
+    if (!name || !campus || !district || ! community || !address || !leader || !phone || !email || !password) {
       return res.status(400).json({ success: false, message: "All fields are required" });
     }
 
@@ -581,6 +582,7 @@ app.post("/api/cell/register", upload.single("logo"), async (req, res) => {
       name,
       campus,
       district,
+      community,
       address,
       leader,
       phone,
@@ -629,6 +631,7 @@ app.post("/api/cell/login", async (req, res) => {
         email: cell.email,
         campus: cell.campus?.name,
         district: cell.district?.name,
+        community: cell.community?.name,
         logo: cell.logo,
       },
     });
@@ -646,6 +649,7 @@ app.get("/api/cell/:id?", async (req, res) => {
       const cell = await Cell.findById(req.params.id)
         .populate("campus", "name")
         .populate("district", "name");
+        .populate("community", "name");
       if (!cell) return res.status(404).json({ success: false, message: "Cell not found" });
       return res.json({ success: true, data: cell });
     }
@@ -653,6 +657,7 @@ app.get("/api/cell/:id?", async (req, res) => {
     const cells = await Cell.find()
       .populate("campus", "name")
       .populate("district", "name");
+      .populate("community", "name");
 
     res.json({ success: true, data: cells });
   } catch (error) {
