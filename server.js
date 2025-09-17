@@ -692,6 +692,24 @@ app.get("/api/districts", async (req, res) => {
   }
 });
 
+
+// --------------------------------------------------
+// Get Communities by District
+// --------------------------------------------------
+app.get("/api/communities", async (req, res) => {
+  try {
+    const { district } = req.query;
+    if (!district) {
+      return res.status(400).json({ success: false, message: "District ID required" });
+    }
+
+    const communities = await Community.find({ district }).sort({ createdAt: -1 });
+    res.json({ success: true, data: communities });
+  } catch (err) {
+    console.error("Error fetching communities:", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
 // ======================
 // Universal Login
 // ======================
