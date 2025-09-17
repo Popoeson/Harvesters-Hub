@@ -159,6 +159,12 @@ const memberSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 
+const superAdminSchema = new mongoose.Schema({
+  name: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now }
+});
+
 // ---------- Mongoose Models ---------
 const Image = mongoose.model("Image", ImageSchema);
 const Campus = mongoose.model("Campus", campusSchema);
@@ -166,6 +172,7 @@ const District = mongoose.model("District", districtSchema);
 const Cell = mongoose.model("Cell",cellSchema);
 const Member = mongoose.model("Member",memberSchema);
 const Community= mongoose.model("Community", communitySchema);
+const superAdmin= mongoose.model("superAdmin", superAdminShema);
 // ---------- Routes ----------
 
 // Health probe
