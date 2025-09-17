@@ -872,6 +872,57 @@ app.get("/api/members", async (req, res) => {
   }
 });
 
+// ✅ Register Super Admin
+app.post("/register", async (req, res) => {
+  try {
+    const { name, password } = req.body;
+
+    if (!name || !password) {
+      return res.status(400).json({ success: false, message: "All fields are required" });
+    }
+
+    const exists = await SuperAdmin.findOne({ name });
+    if (exists) {
+      return res.status(400).json({ success: false, message: "Super Admin already exists" });
+    }
+
+    const superAdmin = await SuperAdmin.create({ name, password });
+    res.status(201).json({
+      success: true,
+      message: "Super Admin registered successfully",
+      data: {
+        id: superAdmin._id,
+        name: superAdmin.name
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Server error", error: err.message });
+  }
+});
+
+// ✅ Login Super Admin
+app.post("/login", async (req, res) => {
+  try {
+    const { name, password } = req.body;
+
+    const superAdmin = await SuperAdmin.findOne({ name });
+    if (!superAdmin || superAdmin.password !== password) {
+      return res.status(400).json({ success: false, message: "Invalid credentials" });
+    }
+
+    res.json({
+      success: true,
+      message: "Login successful",
+      data: {
+        id: superAdmin._id,
+        name: superAdmin.name
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Server error", error: err.message });
+  }
+});
+
 //=======================
 // 🔴 Fetch Live Feeds
 //=======================
