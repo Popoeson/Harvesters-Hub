@@ -159,6 +159,7 @@ const memberSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 
+// ✅ SuperAdmin Schema
 const superAdminSchema = new mongoose.Schema({
   name: { type: String, required: true, unique: true },
   password: { type: String, required: true },
@@ -172,7 +173,7 @@ const District = mongoose.model("District", districtSchema);
 const Cell = mongoose.model("Cell",cellSchema);
 const Member = mongoose.model("Member",memberSchema);
 const Community= mongoose.model("Community", communitySchema);
-const superAdmin= mongoose.model("superAdmin", superAdminShema);
+const SuperAdmin = mongoose.model("SuperAdmin", superAdminSchema);
 // ---------- Routes ----------
 
 // Health probe
@@ -872,8 +873,10 @@ app.get("/api/members", async (req, res) => {
   }
 });
 
+
+
 // ✅ Register Super Admin
-app.post("/superAdmin/register", async (req, res) => {
+app.post("/superadmin/register", async (req, res) => {
   try {
     const { name, password } = req.body;
 
