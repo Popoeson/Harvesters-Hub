@@ -123,20 +123,32 @@ const communitySchema = new mongoose.Schema({
   logo: String, // Cloudinary URL
 }, { timestamps: true });
 
+//const cellSchema = new mongoose.Schema({
+ // name: { type: String, required: true },
+//  campus: { type: mongoose.Schema.Types.ObjectId, ref: "Campus", required: true },
+//  district: { type: mongoose.Schema.Types.ObjectId, ref: "District", required: true },
+//  community: {type: mongoose.Schema.Types.ObjectId, ref: "Community", required: true},
+//  address: { type: String, required: true },
+//  leader: { type: String, required: true },
+//  phone: { type: String, required: true},
+//  email: { type: String, required: true, unique: true },
+//  password: { type: String, required: true }, // plain since no bcrypt
+//  logo: { type: String },
+//  dateRegistered: { type: Date, default: Date.now },
+// });
 const cellSchema = new mongoose.Schema({
   name: { type: String, required: true },
   campus: { type: mongoose.Schema.Types.ObjectId, ref: "Campus", required: true },
   district: { type: mongoose.Schema.Types.ObjectId, ref: "District", required: true },
-  community: {type: mongoose.Schema.Types.ObjectId, ref: "Community", required: true},
+  community: { type: mongoose.Schema.Types.ObjectId, ref: "Community", required: true },
   address: { type: String, required: true },
   leader: { type: String, required: true },
-  phone: { type: String, required: true},
+  phone: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true }, // plain since no bcrypt
   logo: { type: String },
-  dateRegistered: { type: Date, default: Date.now },
+  dateRegistered: { type: Date, default: Date.now } // ✅ You forgot to finish this
 });
-
 const memberSchema = new mongoose.Schema({
   fullName: { type: String, required: true },
   address: { type: String, required: true },
@@ -648,7 +660,7 @@ app.get("/api/cell/:id?", async (req, res) => {
     if (req.params.id) {
       const cell = await Cell.findById(req.params.id)
         .populate("campus", "name")
-        .populate("district", "name");
+        .populate("district", "name")
         .populate("community", "name");
       if (!cell) return res.status(404).json({ success: false, message: "Cell not found" });
       return res.json({ success: true, data: cell });
@@ -656,7 +668,7 @@ app.get("/api/cell/:id?", async (req, res) => {
 
     const cells = await Cell.find()
       .populate("campus", "name")
-      .populate("district", "name");
+      .populate("district", "name")
       .populate("community", "name");
 
     res.json({ success: true, data: cells });
