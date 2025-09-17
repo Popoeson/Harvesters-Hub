@@ -14,7 +14,6 @@
       padding: 0;
     }
 
-    /* Header */
     .header {
       display: flex;
       justify-content: center;
@@ -31,7 +30,6 @@
       height: 30px;
     }
 
-    /* Form Container */
     .form-container {
       max-width: 500px;
       margin: 40px auto;
@@ -117,9 +115,17 @@
           <option value="">-- Select District --</option>
         </select>
       </div>
+
+      <!-- New community dropdown -->
+      <div class="form-group">
+        <label for="community">Community</label>
+        <select id="community" name="community" required>
+          <option value="">-- Select Community --</option>
+        </select>
+      </div>
       
       <div class="form-group">
-        <label for="leader">Cell Address</label>
+        <label for="address">Cell Address</label>
         <input type="text" id="address" name="address" required>
       </div>
       
@@ -180,6 +186,7 @@
       const campusId = e.target.value;
       const districtSelect = document.getElementById("district");
       districtSelect.innerHTML = '<option value="">-- Select District --</option>';
+      document.getElementById("community").innerHTML = '<option value="">-- Select Community --</option>';
 
       if (!campusId) return;
 
@@ -199,6 +206,30 @@
       }
     });
 
+    // Load communities when district changes
+    document.getElementById("district").addEventListener("change", async (e) => {
+      const districtId = e.target.value;
+      const communitySelect = document.getElementById("community");
+      communitySelect.innerHTML = '<option value="">-- Select Community --</option>';
+
+      if (!districtId) return;
+
+      try {
+        const res = await fetch(`${API_BASE}/communities?district=${districtId}`);
+        const data = await res.json();
+        if (data.success) {
+          data.data.forEach(community => {
+            const option = document.createElement("option");
+            option.value = community._id;
+            option.textContent = community.name;
+            communitySelect.appendChild(option);
+          });
+        }
+      } catch (err) {
+        console.error("Error loading communities:", err);
+      }
+    });
+
     // Handle form submit
     document.getElementById("cellForm").addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -215,6 +246,7 @@
           alert("✅ Cell registered successfully!");
           e.target.reset();
           document.getElementById("district").innerHTML = '<option value="">-- Select District --</option>';
+          document.getElementById("community").innerHTML = '<option value="">-- Select Community --</option>';
         } else {
           alert("❌ " + (result.message || "Registration failed"));
         }
@@ -228,4 +260,4 @@
     loadCampuses();
   </script>
 </body>
-</html>
+        </html>
