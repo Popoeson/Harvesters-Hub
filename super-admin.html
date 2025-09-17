@@ -95,6 +95,26 @@
       background: darkgreen;
     }
 
+    .spinner {
+      border: 2px solid #fff;
+      border-top: 2px solid transparent;
+      border-radius: 50%;
+      width: 16px;
+      height: 16px;
+      animation: spin 0.6s linear infinite;
+      display: none;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .message {
+      text-align: center;
+      margin-top: 10px;
+      font-size: 14px;
+      }
     .message {
       text-align: center;
       margin-top: 15px;
@@ -127,7 +147,13 @@
         </div>
       </div>
 
-      <button type="submit">Register</button>
+      
+      <button type="submit" id="submitBtn">
+        <span id="btnText">Register</span>
+        <div class="spinner" id="spinner"></div>
+      </button>
+    </form>
+    
     </form>
     <div class="message" id="message"></div>
   </div>
