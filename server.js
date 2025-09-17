@@ -873,7 +873,7 @@ app.get("/api/members", async (req, res) => {
 });
 
 // ✅ Register Super Admin
-app.post("/register", async (req, res) => {
+app.post("/superAdmin/register", async (req, res) => {
   try {
     const { name, password } = req.body;
 
@@ -901,7 +901,7 @@ app.post("/register", async (req, res) => {
 });
 
 // ✅ Login Super Admin
-app.post("/login", async (req, res) => {
+app.post("/superAdmin/login", async (req, res) => {
   try {
     const { name, password } = req.body;
 
