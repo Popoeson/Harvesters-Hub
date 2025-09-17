@@ -89,6 +89,10 @@
       cursor: pointer;
       margin-top: 10px;
       transition: 0.3s ease;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
     }
 
     button:hover {
@@ -110,11 +114,6 @@
       100% { transform: rotate(360deg); }
     }
 
-    .message {
-      text-align: center;
-      margin-top: 10px;
-      font-size: 14px;
-      }
     .message {
       text-align: center;
       margin-top: 15px;
@@ -147,13 +146,10 @@
         </div>
       </div>
 
-      
       <button type="submit" id="submitBtn">
         <span id="btnText">Register</span>
         <div class="spinner" id="spinner"></div>
       </button>
-    </form>
-    
     </form>
     <div class="message" id="message"></div>
   </div>
@@ -162,10 +158,19 @@
 <script>
   const API_BASE = "https://harvesters-hub-fbgo.onrender.com/api";
 
-  document.getElementById("superAdminRegister").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const formData = new FormData(e.target);
+  const form = document.getElementById("superAdminRegister");
+  const btnText = document.getElementById("btnText");
+  const spinner = document.getElementById("spinner");
+  const messageDiv = document.getElementById("message");
 
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    // Show spinner
+    btnText.textContent = "Registering...";
+    spinner.style.display = "inline-block";
+
+    const formData = new FormData(e.target);
     const payload = {
       name: formData.get("name"),
       password: formData.get("password")
@@ -180,14 +185,30 @@
       const result = await res.json();
 
       if (res.ok && result.success) {
-        alert("✅ Super Admin registered successfully!");
+        messageDiv.style.color = "green";
+        messageDiv.textContent = "✅ Super Admin registered successfully! Redirecting...";
+
+        // Save to localStorage
+        localStorage.setItem("superAdmin", JSON.stringify(result.data));
+
+        // Redirect after 1.5s
+        setTimeout(() => {
+          window.location.href = "admin-dashboard.html";
+        }, 1500);
+
         e.target.reset();
       } else {
-        alert("❌ " + (result.message || "Registration failed"));
+        messageDiv.style.color = "red";
+        messageDiv.textContent = "❌ " + (result.message || "Registration failed");
       }
     } catch (err) {
-      alert("❌ Server error");
+      messageDiv.style.color = "red";
+      messageDiv.textContent = "❌ Server error";
       console.error(err);
+    } finally {
+      // Hide spinner
+      btnText.textContent = "Register";
+      spinner.style.display = "none";
     }
   });
 </script>
