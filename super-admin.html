@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register Super Admin</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f9;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #fff;
+      padding: 14px 20px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .header img {
+      height: 35px;
+    }
+
+    /* Form Container */
+    .form-container {
+      max-width: 420px;
+      margin: 60px auto;
+      padding: 30px 25px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 6px 14px rgba(0,0,0,0.1);
+    }
+
+    .form-container h2 {
+      text-align: center;
+      margin-bottom: 25px;
+      color: #2d2d2d;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-group label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 6px;
+      color: #333;
+    }
+
+    .input-wrapper {
+      position: relative;
+    }
+
+    .input-wrapper i {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #888;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px 12px 12px 38px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 15px;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background: green;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: 0.3s ease;
+    }
+
+    button:hover {
+      background: darkgreen;
+    }
+
+    .message {
+      text-align: center;
+      margin-top: 15px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div class="header">
+    <img src="uploads/harvesters.png" alt="Logo">
+  </div>
+  
+  <div class="form-container">
+    <h2>Register Super Admin</h2>
+    <form id="superAdminRegister">
+      <div class="form-group">
+        <label for="name">Full Name</label>
+        <div class="input-wrapper">
+          <i class="fa fa-user"></i>
+          <input type="text" id="name" name="name" placeholder="Enter full name" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <div class="input-wrapper">
+          <i class="fa fa-lock"></i>
+          <input type="password" id="password" name="password" placeholder="Enter password" required>
+        </div>
+      </div>
+
+      <button type="submit">Register</button>
+    </form>
+    <div class="message" id="message"></div>
+  </div>
+  
+
+<script>
+  const API_BASE = "https://your-backend-url.onrender.com/api";
+
+  document.getElementById("superAdminRegister").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+
+    const payload = {
+      name: formData.get("name"),
+      password: formData.get("password")
+    };
+
+    try {
+      const res = await fetch(`${API_BASE}/superadmin/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const result = await res.json();
+
+      if (res.ok && result.success) {
+        alert("✅ Super Admin registered successfully!");
+        e.target.reset();
+      } else {
+        alert("❌ " + (result.message || "Registration failed"));
+      }
+    } catch (err) {
+      alert("❌ Server error");
+      console.error(err);
+    }
+  });
+</script>
+</body>
+</html>
