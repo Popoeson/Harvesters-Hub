@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Community Management</title>
+  <title>Admin Dashboard</title>
   <!-- Font Awesome for icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
@@ -56,63 +56,93 @@
       font-size: 1.2rem;
       color: #333;
     }
+
+    .hidden {
+      display: none !important;
+    }
   </style>
 </head>
 <body>
 
-  <h1>Community Management Dashboard</h1>
+  <h1>Admin Dashboard</h1>
 
   <div class="grid">
     <!-- Campus -->
-    <a href="campus-register.html" class="card">
+    <a href="campus-register.html" class="card campus-only super-only">
       <i class="fas fa-university"></i>
       <h3>Register Campus</h3>
     </a>
-    <a href="campus-dashboard.html" class="card">
+    <a href="campus-dashboard.html" class="card campus-only super-only">
       <i class="fas fa-eye"></i>
       <h3>View Campus</h3>
     </a>
 
     <!-- District -->
-    <a href="district-registration.html" class="card">
+    <a href="district-registration.html" class="card campus-only super-only district-only">
       <i class="fas fa-map"></i>
       <h3>Register District</h3>
     </a>
-    <a href="district-dashboard.html" class="card">
+    <a href="district-dashboard.html" class="card campus-only super-only district-only">
       <i class="fas fa-list"></i>
       <h3>View District</h3>
     </a>
 
     <!-- Community -->
-    <a href="register-community.html" class="card">
+    <a href="register-community.html" class="card campus-only super-only district-only community-only">
       <i class="fas fa-users"></i>
       <h3>Register Community</h3>
     </a>
-    <a href="community-dashboard.html" class="card">
+    <a href="community-dashboard.html" class="card campus-only super-only district-only community-only">
       <i class="fas fa-th-large"></i>
       <h3>View Community</h3>
     </a>
 
     <!-- Cell -->
-    <a href="cell-registration.html" class="card">
+    <a href="cell-registration.html" class="card campus-only super-only district-only community-only">
       <i class="fas fa-network-wired"></i>
       <h3>Register Cell</h3>
     </a>
-    <a href="cell-dashboard.html" class="card">
+    <a href="cell-dashboard.html" class="card campus-only super-only district-only community-only">
       <i class="fas fa-table"></i>
       <h3>View Cell</h3>
     </a>
 
     <!-- Members -->
-    <a href="cellMembership-registration.html" class="card">
+    <a href="cellMembership-registration.html" class="card district-only community-only cell-only super-only">
       <i class="fas fa-user-plus"></i>
       <h3>Register Members</h3>
     </a>
-    <a href="members-dashboard.html" class="card">
+    <a href="members-dashboard.html" class="card community-only cell-only super-only">
       <i class="fas fa-address-book"></i>
       <h3>View Members</h3>
     </a>
   </div>
 
+  <script>
+    // ✅ Detect role from localStorage
+    const role = localStorage.getItem("role");
+
+    if (!role) {
+      alert("Unauthorized. Please log in.");
+      window.location.href = "universal-login2.html"; // redirect if not logged in
+    }
+
+    // Hide all cards first
+    document.querySelectorAll(".card").forEach(card => card.classList.add("hidden"));
+
+    // Show cards based on role
+    if (role === "superadmin") {
+      document.querySelectorAll(".super-only").forEach(card => card.classList.remove("hidden"));
+    } else if (role === "campus") {
+      document.querySelectorAll(".campus-only").forEach(card => card.classList.remove("hidden"));
+    } else if (role === "district") {
+      document.querySelectorAll(".district-only").forEach(card => card.classList.remove("hidden"));
+    } else if (role === "community") {
+      document.querySelectorAll(".community-only").forEach(card => card.classList.remove("hidden"));
+    } else if (role === "cell") {
+      document.querySelectorAll(".cell-only").forEach(card => card.classList.remove("hidden"));
+    }
+  </script>
+
 </body>
-</html>
+      </html>
