@@ -777,6 +777,76 @@ app.post("/api/universal-login", async (req, res) => {
 });
 
 // ======================
+// Universal Login 2
+// ======================
+app.post("/api/universal-login2", async (req, res) => {
+  try {
+    const { identifier, password } = req.body; // identifier = email | name
+
+    if (!identifier || !password) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    let user = null;
+    let role = "";
+
+    // 1. Campus
+    user = await Campus.findOne({ $or: [{ email: identifier }, { name: identifier }] });
+    if (user) role = "campus";
+
+    // 2. District
+    if (!user) {
+      user = await District.findOne({ $or: [{ email: identifier }, { name: identifier }] });
+      if (user) role = "district";
+    }
+
+    // 3. Community
+    if (!user) {
+      user = await Community.findOne({ $or: [{ email: identifier }, { name: identifier }] });
+      if (user) role = "community";
+    }
+
+    // 4. Cell
+    if (!user) {
+      user = await Cell.findOne({ $or: [{ email: identifier }, { name: identifier }] });
+      if (user) role = "cell";
+    }
+
+    // 5. Super Admin
+    if (!user) {
+      user = await SuperAdmin.findOne({ name: identifier });
+      if (user) role = "superadmin";
+    }
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Compare password
+    const isMatch = password === user.password; // ❗ plain-text for now
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid password" });
+    }
+
+    // ✅ Return role + user details
+    res.json({
+      message: "Login successful",
+      role,
+      user: {
+        id: user._id,
+        name: user.name || user.email,
+        email: user.email || "",
+        logo: user.logo || ""
+      }
+    });
+
+  } catch (err) {
+    console.error("Error in universal login:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// ======================
 // Register a Member
 // ======================
 app.post("/api/members/register", async (req, res) => {
