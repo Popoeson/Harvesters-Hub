@@ -127,69 +127,45 @@
   </div>
 
   <script>
-  const API_BASE = "https://harvesters-hub-fbgo.onrender.com/api";
-  const grid = document.getElementById("districtGrid");
-  const searchInput = document.getElementById("searchInput");
+const API_BASE = "https://harvesters-hub-fbgo.onrender.com/api";
+const user = JSON.parse(localStorage.getItem("user"));
+const role = localStorage.getItem("role");
 
-  let districtData = [];
+async function fetchDistricts() {
+  let url = `${API_BASE}/district`;
 
-  // ✅ Get logged in user from localStorage
-  const user = JSON.parse(localStorage.getItem("user"));
-
-  // Fetch districts
-  async function fetchDistricts() {
-    try {
-      let url = `${API_BASE}/district`;
-
-      // ✅ If user is campus, filter districts under their campus
-      if (user && user.role === "campus") {
-        url += `?campusId=${user._id}`;
-      }
-
-      const res = await fetch(url);
-      const data = await res.json();
-      if (data.success) {
-        districtData = data.data;
-        renderDistricts(districtData);
-      }
-    } catch (err) {
-      console.error("Error fetching districts:", err);
-    }
+  if (role === "campus") {
+    // Campus user → only their districts
+    url = `${API_BASE}/district?campusId=${user._id}`;
+  } else if (role === "superadmin") {
+    // Superadmin → all districts (no filter)
+    url = `${API_BASE}/district`;
   }
 
-  // Render districts as cards
-  function renderDistricts(districts) {
-    grid.innerHTML = "";
-    if (districts.length === 0) {
-      grid.innerHTML = "<p style='text-align:center; grid-column:1/-1;'>No districts found.</p>";
-      return;
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data.success) {
+      renderDistricts(data.data);
+    } else {
+      alert("Failed to load districts");
     }
-
-    districts.forEach(district => {
-      const card = document.createElement("div");
-      card.className = "card";
-      card.innerHTML = `
-        <img src="${district.logo}" alt="Logo">
-        <h3>${district.name}</h3>
-        <p>🏫 Campus: ${district.campus?.name || "N/A"}</p>
-        <p class="email"><i class="fa fa-envelope"></i> ${district.email || "N/A"}</p>
-      `;
-      grid.appendChild(card);
-    });
+  } catch (err) {
+    console.error("Error fetching districts", err);
   }
+}
 
-  // Search filter
-  searchInput.addEventListener("input", () => {
-    const term = searchInput.value.toLowerCase();
-    const filtered = districtData.filter(d =>
-      d.name.toLowerCase().includes(term) ||
-      (d.campus?.name || "").toLowerCase().includes(term)
-    );
-    renderDistricts(filtered);
+function renderDistricts(districts) {
+  const container = document.getElementById("districtList");
+  container.innerHTML = "";
+  districts.forEach(d => {
+    const div = document.createElement("div");
+    div.textContent = `${d.name} (${d.campus?.name || "No campus"})`;
+    container.appendChild(div);
   });
+}
 
-  // Init
-  fetchDistricts();
+fetchDistricts();
   </script>
 </body>
 </html>
