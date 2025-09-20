@@ -127,59 +127,69 @@
   </div>
 
   <script>
-    const API_BASE = "https://harvesters-hub-fbgo.onrender.com/api";
-    const grid = document.getElementById("districtGrid");
-    const searchInput = document.getElementById("searchInput");
+  const API_BASE = "https://harvesters-hub-fbgo.onrender.com/api";
+  const grid = document.getElementById("districtGrid");
+  const searchInput = document.getElementById("searchInput");
 
-    let districtData = [];
+  let districtData = [];
 
-    // Fetch districts
-    async function fetchDistricts() {
-      try {
-        const res = await fetch(`${API_BASE}/district`);
-        const data = await res.json();
-        if (data.success) {
-          districtData = data.data;
-          renderDistricts(districtData);
-        }
-      } catch (err) {
-        console.error("Error fetching districts:", err);
-      }
-    }
+  // ✅ Get logged in user from localStorage
+  const user = JSON.parse(localStorage.getItem("user"));
 
-    // Render districts as cards
-    function renderDistricts(districts) {
-      grid.innerHTML = "";
-      if (districts.length === 0) {
-        grid.innerHTML = "<p style='text-align:center; grid-column:1/-1;'>No districts found.</p>";
-        return;
+  // Fetch districts
+  async function fetchDistricts() {
+    try {
+      let url = `${API_BASE}/district`;
+
+      // ✅ If user is campus, filter districts under their campus
+      if (user && user.role === "campus") {
+        url += `?campusId=${user._id}`;
       }
 
-      districts.forEach(district => {
-        const card = document.createElement("div");
-        card.className = "card";
-        card.innerHTML = `
-          <img src="${district.logo}" alt="Logo">
-          <h3>${district.name}</h3>
-          <p>🏫 Campus: ${district.campus?.name || "N/A"}</p>
-          <p class="email"><i class="fa fa-envelope"></i> ${district.email || "N/A"}</p>
-        `;
-        grid.appendChild(card);
-      });
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.success) {
+        districtData = data.data;
+        renderDistricts(districtData);
+      }
+    } catch (err) {
+      console.error("Error fetching districts:", err);
+    }
+  }
+
+  // Render districts as cards
+  function renderDistricts(districts) {
+    grid.innerHTML = "";
+    if (districts.length === 0) {
+      grid.innerHTML = "<p style='text-align:center; grid-column:1/-1;'>No districts found.</p>";
+      return;
     }
 
-    // Search filter
-    searchInput.addEventListener("input", () => {
-      const term = searchInput.value.toLowerCase();
-      const filtered = districtData.filter(d =>
-        d.name.toLowerCase().includes(term) ||
-        (d.campus?.name || "").toLowerCase().includes(term)
-      );
-      renderDistricts(filtered);
+    districts.forEach(district => {
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `
+        <img src="${district.logo}" alt="Logo">
+        <h3>${district.name}</h3>
+        <p>🏫 Campus: ${district.campus?.name || "N/A"}</p>
+        <p class="email"><i class="fa fa-envelope"></i> ${district.email || "N/A"}</p>
+      `;
+      grid.appendChild(card);
     });
+  }
 
-    // Init
-    fetchDistricts();
+  // Search filter
+  searchInput.addEventListener("input", () => {
+    const term = searchInput.value.toLowerCase();
+    const filtered = districtData.filter(d =>
+      d.name.toLowerCase().includes(term) ||
+      (d.campus?.name || "").toLowerCase().includes(term)
+    );
+    renderDistricts(filtered);
+  });
+
+  // Init
+  fetchDistricts();
   </script>
 </body>
 </html>
