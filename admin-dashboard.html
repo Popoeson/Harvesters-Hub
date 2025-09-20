@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Dashboard</title>
-  <!-- Font Awesome for icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     body {
@@ -14,8 +13,6 @@
       padding: 20px;
     }
 
-    
-    /* Header */
     .header {
       display: flex;
       justify-content: center;
@@ -89,69 +86,70 @@
 
   <div class="grid">
     <!-- Campus -->
-    <a href="campus-register.html" class="card campus-only super-only">
+    <a href="#" id="registerCampus" class="card campus-only super-only">
       <i class="fas fa-university"></i>
       <h3>Register Campus</h3>
     </a>
-    <a href="campus-dashboard.html" class="card campus-only super-only">
+    <a href="#" id="viewCampus" class="card campus-only super-only">
       <i class="fas fa-eye"></i>
       <h3>View Campus</h3>
     </a>
 
     <!-- District -->
-    <a href="district-registration.html" class="card campus-only super-only district-only">
+    <a href="#" id="registerDistrict" class="card campus-only super-only district-only">
       <i class="fas fa-map"></i>
       <h3>Register District</h3>
     </a>
-    <a href="district-dashboard.html" class="card campus-only super-only district-only">
+    <a href="#" id="viewDistrict" class="card campus-only super-only district-only">
       <i class="fas fa-list"></i>
       <h3>View District</h3>
     </a>
 
     <!-- Community -->
-    <a href="register-community.html" class="card campus-only super-only district-only community-only">
+    <a href="#" id="registerCommunity" class="card campus-only super-only district-only community-only">
       <i class="fas fa-users"></i>
       <h3>Register Community</h3>
     </a>
-    <a href="community-dashboard.html" class="card campus-only super-only district-only community-only">
+    <a href="#" id="viewCommunity" class="card campus-only super-only district-only community-only">
       <i class="fas fa-th-large"></i>
       <h3>View Community</h3>
     </a>
 
     <!-- Cell -->
-    <a href="cell-registration.html" class="card campus-only super-only district-only community-only">
+    <a href="#" id="registerCell" class="card campus-only super-only district-only community-only">
       <i class="fas fa-network-wired"></i>
       <h3>Register Cell</h3>
     </a>
-    <a href="cell-dashboard.html" class="card campus-only super-only district-only community-only">
+    <a href="#" id="viewCell" class="card campus-only super-only district-only community-only">
       <i class="fas fa-table"></i>
       <h3>View Cell</h3>
     </a>
 
     <!-- Members -->
-    <a href="cellMembership-registration.html" class="card district-only community-only cell-only super-only">
+    <a href="#" id="registerMember" class="card district-only community-only cell-only super-only">
       <i class="fas fa-user-plus"></i>
       <h3>Register Members</h3>
     </a>
-    <a href="members-dashboard.html" class="card community-only cell-only super-only">
+    <a href="#" id="viewMembers" class="card community-only cell-only super-only">
       <i class="fas fa-address-book"></i>
       <h3>View Members</h3>
     </a>
   </div>
 
   <script>
-    // ✅ Detect role from localStorage
+    const API_BASE = "https://harvesters-hub-fbgo.onrender.com/api";
     const role = localStorage.getItem("role");
+    const user = JSON.parse(localStorage.getItem("user"));
 
-    if (!role) {
+    if (!role || !user) {
       alert("Unauthorized. Please log in.");
-      window.location.href = "universal-login2.html"; // redirect if not logged in
+      window.location.href = "universal-login2.html";
     }
 
-    // Hide all cards first
+    // Hide all cards
     document.querySelectorAll(".card").forEach(card => card.classList.add("hidden"));
 
-    // Show cards based on role
+    // Show based on role
     if (role === "superadmin") {
       document.querySelectorAll(".super-only").forEach(card => card.classList.remove("hidden"));
     } else if (role === "campus") {
@@ -163,7 +161,47 @@
     } else if (role === "cell") {
       document.querySelectorAll(".cell-only").forEach(card => card.classList.remove("hidden"));
     }
-  </script>
 
+    // ✅ Inject filtering
+    document.getElementById("viewDistrict")?.addEventListener("click", () => {
+      if (role === "campus") {
+        window.location.href = `district-dashboard.html?campusId=${user.id}`;
+      } else if (role === "superadmin") {
+        window.location.href = `district-dashboard.html`;
+      }
+    });
+
+    document.getElementById("viewCommunity")?.addEventListener("click", () => {
+      if (role === "district") {
+        window.location.href = `community-dashboard.html?districtId=${user.id}`;
+      } else if (role === "campus") {
+        window.location.href = `community-dashboard.html?campusId=${user.id}`;
+      } else if (role === "superadmin") {
+        window.location.href = `community-dashboard.html`;
+      }
+    });
+
+    document.getElementById("viewCell")?.addEventListener("click", () => {
+      if (role === "community") {
+        window.location.href = `cell-dashboard.html?communityId=${user.id}`;
+      } else if (role === "district") {
+        window.location.href = `cell-dashboard.html?districtId=${user.id}`;
+      } else if (role === "campus") {
+        window.location.href = `cell-dashboard.html?campusId=${user.id}`;
+      } else if (role === "superadmin") {
+        window.location.href = `cell-dashboard.html`;
+      }
+    });
+
+    document.getElementById("viewMembers")?.addEventListener("click", () => {
+      if (role === "cell") {
+        window.location.href = `members-dashboard.html?cellId=${user.id}`;
+      } else if (role === "community") {
+        window.location.href = `members-dashboard.html?communityId=${user.id}`;
+      } else if (role === "superadmin") {
+        window.location.href = `members-dashboard.html`;
+      }
+    });
+  </script>
 </body>
-      </html>
+        </html>
