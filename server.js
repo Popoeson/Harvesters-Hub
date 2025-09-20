@@ -480,17 +480,28 @@ app.post("/api/district/login", async (req, res) => {
 });
 
 // --------------------------------------------------
-// Get District (all or single)
+// Get District (all, single, or filtered by campus)
 // --------------------------------------------------
 app.get("/api/district/:id?", async (req, res) => {
   try {
+    // Case 1: Fetch single district by ID
     if (req.params.id) {
-      const district = await District.findById(req.params.id).populate("campus", "name email");
-      if (!district) return res.status(404).json({ success: false, message: "District not found" });
+      const district = await District.findById(req.params.id)
+        .populate("campus", "name email");
+      if (!district) {
+        return res.status(404).json({ success: false, message: "District not found" });
+      }
       return res.json({ success: true, data: district });
     }
 
-    const districts = await District.find()
+    // Case 2: Filtering logic
+    const filter = {};
+    if (req.query.campusId) {
+      filter.campus = req.query.campusId; // filter districts under a campus
+    }
+
+    // Case 3: Fetch multiple districts
+    const districts = await District.find(filter)
       .populate("campus", "name email")
       .sort({ createdAt: -1 });
 
