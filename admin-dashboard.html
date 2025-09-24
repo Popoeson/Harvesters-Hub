@@ -147,36 +147,38 @@
   </div>
 
   <script>
-    // ✅ Detect role + name from localStorage
-    const role = localStorage.getItem("role");
-    const name = localStorage.getItem("name");
+  // ✅ Detect role from localStorage
+  const role = localStorage.getItem("role");
+  const user = JSON.parse(localStorage.getItem("user")) || {};
+  const superAdmin = JSON.parse(localStorage.getItem("superAdmin")) || {};
 
-    if (!role) {
-      alert("Unauthorized. Please log in.");
-      window.location.href = "universal-login2.html";
-    }
+  if (!role) {
+    alert("Unauthorized. Please log in.");
+    window.location.href = "universal-login2.html";
+  }
 
-    // ✅ Show welcome note
-    document.getElementById("welcomeNote").textContent = `Welcome, ${name || "User"}`;
+  // ✅ Show welcome note using correct object
+  const nameToShow = user.name || superAdmin.name || "User";
+  document.getElementById("welcomeNote").textContent = `Welcome, ${nameToShow}`;
 
-    // Hide all cards first
-    document.querySelectorAll(".card").forEach(card => card.classList.add("hidden"));
+  // Hide all cards first
+  document.querySelectorAll(".card").forEach(card => card.classList.add("hidden"));
 
-    // Show cards based on role
-    if (role === "superadmin") {
-      document.querySelectorAll(".super-only").forEach(card => card.classList.remove("hidden"));
-    } else if (role === "campus") {
-      document.querySelectorAll(".campus-only").forEach(card => card.classList.remove("hidden"));
-      document.querySelectorAll(".register-campus").forEach(card => card.classList.add("hidden")); // hide register campus
-    } else if (role === "district") {
-      document.querySelectorAll(".district-only").forEach(card => card.classList.remove("hidden"));
-      document.querySelectorAll(".register-district").forEach(card => card.classList.add("hidden")); // hide register district
-    } else if (role === "community") {
-      document.querySelectorAll(".community-only").forEach(card => card.classList.remove("hidden"));
-      document.querySelectorAll(".register-community").forEach(card => card.classList.add("hidden")); // hide register community
-    } else if (role === "cell") {
-      document.querySelectorAll(".cell-only").forEach(card => card.classList.remove("hidden"));
-    }
-  </script>
+  // Show cards based on role
+  if (role === "superadmin") {
+    document.querySelectorAll(".super-only").forEach(card => card.classList.remove("hidden"));
+  } else if (role === "campus") {
+    document.querySelectorAll(".campus-only").forEach(card => card.classList.remove("hidden"));
+    document.querySelectorAll(".register-campus").forEach(card => card.classList.add("hidden")); // hide register campus
+  } else if (role === "district") {
+    document.querySelectorAll(".district-only").forEach(card => card.classList.remove("hidden"));
+    document.querySelectorAll(".register-district").forEach(card => card.classList.add("hidden")); // hide register district
+  } else if (role === "community") {
+    document.querySelectorAll(".community-only").forEach(card => card.classList.remove("hidden"));
+    document.querySelectorAll(".register-community").forEach(card => card.classList.add("hidden")); // hide register community
+  } else if (role === "cell") {
+    document.querySelectorAll(".cell-only").forEach(card => card.classList.remove("hidden"));
+  }
+    </script>
 </body>
       </html>
