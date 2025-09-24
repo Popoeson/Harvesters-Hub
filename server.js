@@ -684,21 +684,34 @@ app.post("/api/cell/login", async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 });
+
 // --------------------------------------------------
-// Get Cell (all or single)
+// Get Cell (all, single, or filtered)
 // --------------------------------------------------
 app.get("/api/cell/:id?", async (req, res) => {
   try {
     if (req.params.id) {
+      // Single cell by ID
       const cell = await Cell.findById(req.params.id)
         .populate("campus", "name")
         .populate("district", "name")
         .populate("community", "name");
-      if (!cell) return res.status(404).json({ success: false, message: "Cell not found" });
+
+      if (!cell) {
+        return res.status(404).json({ success: false, message: "Cell not found" });
+      }
       return res.json({ success: true, data: cell });
     }
 
-    const cells = await Cell.find()
+    // Filtering logic
+    const { campusId, districtId, communityId } = req.query;
+    const filter = {};
+
+    if (campusId) filter.campus = campusId;
+    if (districtId) filter.district = districtId;
+    if (communityId) filter.community = communityId;
+
+    const cells = await Cell.find(filter)
       .populate("campus", "name")
       .populate("district", "name")
       .populate("community", "name");
