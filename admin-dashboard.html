@@ -1,159 +1,182 @@
-<!DOCTYPE html>  <html lang="en">  
-<head>  
-  <meta charset="UTF-8">  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">  
-  <title>Admin Dashboard</title>  
-  <!-- Font Awesome for icons -->  
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">  
-  <style>  
-    body {  
-      margin: 0;  
-      font-family: Arial, sans-serif;  
-      background: #f4f6f9;  
-      padding: 20px;  
-    }  /* Header */  
-.header {  
-  display: flex;  
-  justify-content: center;  
-  align-items: center;  
-  background: #fff;  
-  padding: 14px 20px;  
-  box-shadow: 0 2px 6px rgba(0,0,0,0.08);  
-  position: sticky;  
-  top: 0;  
-  z-index: 1000;  
-}  
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard</title>
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f6f9;
+      padding: 20px;
+    }
 
-.header img {  
-  height: 35px;  
-}  
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #fff;
+      padding: 14px 20px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
 
-h1 {  
-  text-align: center;  
-  margin-bottom: 30px;  
-  color: #333;  
-}  
+    .header img {
+      height: 35px;
+    }
 
-.grid {  
-  display: grid;  
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));  
-  gap: 20px;  
-  max-width: 1200px;  
-  margin: 0 auto;  
-}  
+    .welcome {
+      font-size: 1rem;
+      font-weight: bold;
+      color: #333;
+    }
 
-.card {  
-  background: #fff;  
-  border-radius: 12px;  
-  padding: 30px 20px;  
-  text-align: center;  
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);  
-  transition: transform 0.2s, box-shadow 0.2s;  
-  cursor: pointer;  
-  text-decoration: none;  
-  color: inherit;  
-}  
+    h1 {
+      text-align: center;
+      margin: 20px 0 30px 0;
+      color: #333;
+    }
 
-.card:hover {  
-  transform: translateY(-5px);  
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);  
-}  
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
 
-.card i {  
-  font-size: 2.5rem;  
-  color: #4CAF50;  
-  margin-bottom: 15px;  
-}  
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 30px 20px;
+      text-align: center;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      transition: transform 0.2s, box-shadow 0.2s;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+    }
 
-.card h3 {  
-  margin: 0;  
-  font-size: 1.2rem;  
-  color: #333;  
-}  
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    }
 
-.hidden {  
-  display: none !important;  
-}
+    .card i {
+      font-size: 2.5rem;
+      color: #4CAF50;
+      margin-bottom: 15px;
+    }
 
-  </style>  
-</head>  
-<body>  
-  <!-- Header -->  
-  <div class="header">  
-    <img src="uploads/harvesters.png" alt="Logo">  
-  </div>  
-  <h1>Admin Dashboard</h1>    <div class="grid">  
-    <!-- Campus -->  
-    <a href="campus-register.html" class="card campus-only super-only">  
-      <i class="fas fa-university"></i>  
-      <h3>Register Campus</h3>  
-    </a>  
-    <a href="campus-dashboard.html" class="card campus-only super-only">  
-      <i class="fas fa-eye"></i>  
-      <h3>View Campus</h3>  
-    </a>  <!-- District -->  
-<a href="district-registration.html" class="card campus-only super-only district-only">  
-  <i class="fas fa-map"></i>  
-  <h3>Register District</h3>  
-</a>  
-<a href="district-dashboard.html" class="card campus-only super-only district-only">  
-  <i class="fas fa-list"></i>  
-  <h3>View District</h3>  
-</a>  
+    .card h3 {
+      margin: 0;
+      font-size: 1.2rem;
+      color: #333;
+    }
 
-<!-- Community -->  
-<a href="register-community.html" class="card campus-only super-only district-only community-only">  
-  <i class="fas fa-users"></i>  
-  <h3>Register Community</h3>  
-</a>  
-<a href="community-dashboard.html" class="card campus-only super-only district-only community-only">  
-  <i class="fas fa-th-large"></i>  
-  <h3>View Community</h3>  
-</a>  
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div class="header">
+    <img src="uploads/harvesters.png" alt="Logo">
+    <div class="welcome" id="welcomeNote"></div>
+  </div>
 
-<!-- Cell -->  
-<a href="cell-registration.html" class="card campus-only super-only district-only community-only">  
-  <i class="fas fa-network-wired"></i>  
-  <h3>Register Cell</h3>  
-</a>  
-<a href="cell-dashboard.html" class="card campus-only super-only district-only community-only">  
-  <i class="fas fa-table"></i>  
-  <h3>View Cell</h3>  
-</a>  
+  <h1>Admin Dashboard</h1>
 
-<!-- Members -->  
-<a href="cellMembership-registration.html" class="card district-only community-only cell-only super-only">  
-  <i class="fas fa-user-plus"></i>  
-  <h3>Register Members</h3>  
-</a>  
-<a href="members-dashboard.html" class="card community-only cell-only super-only">  
-  <i class="fas fa-address-book"></i>  
-  <h3>View Members</h3>  
-</a>
+  <div class="grid">
+    <!-- Campus -->
+    <a href="campus-register.html" class="card campus-only super-only register-campus">
+      <i class="fas fa-university"></i>
+      <h3>Register Campus</h3>
+    </a>
+    <a href="campus-dashboard.html" class="card campus-only super-only">
+      <i class="fas fa-eye"></i>
+      <h3>View Campus</h3>
+    </a>
 
-  </div>    <script>  
-    // ✅ Detect role from localStorage  
-    const role = localStorage.getItem("role");  
-  
-    if (!role) {  
-      alert("Unauthorized. Please log in.");  
-      window.location.href = "universal-login2.html"; // redirect if not logged in  
-    }  
-  
-    // Hide all cards first  
-    document.querySelectorAll(".card").forEach(card => card.classList.add("hidden"));  
-  
-    // Show cards based on role  
-    if (role === "superadmin") {  
-      document.querySelectorAll(".super-only").forEach(card => card.classList.remove("hidden"));  
-    } else if (role === "campus") {  
-      document.querySelectorAll(".campus-only").forEach(card => card.classList.remove("hidden"));  
-    } else if (role === "district") {  
-      document.querySelectorAll(".district-only").forEach(card => card.classList.remove("hidden"));  
-    } else if (role === "community") {  
-      document.querySelectorAll(".community-only").forEach(card => card.classList.remove("hidden"));  
-    } else if (role === "cell") {  
-      document.querySelectorAll(".cell-only").forEach(card => card.classList.remove("hidden"));  
-    }  
-  </script>  </body>  
-  </html>
+    <!-- District -->
+    <a href="district-registration.html" class="card campus-only super-only district-only register-district">
+      <i class="fas fa-map"></i>
+      <h3>Register District</h3>
+    </a>
+    <a href="district-dashboard.html" class="card campus-only super-only district-only">
+      <i class="fas fa-list"></i>
+      <h3>View District</h3>
+    </a>
+
+    <!-- Community -->
+    <a href="register-community.html" class="card campus-only super-only district-only community-only register-community">
+      <i class="fas fa-users"></i>
+      <h3>Register Community</h3>
+    </a>
+    <a href="community-dashboard.html" class="card campus-only super-only district-only community-only">
+      <i class="fas fa-th-large"></i>
+      <h3>View Community</h3>
+    </a>
+
+    <!-- Cell -->
+    <a href="cell-registration.html" class="card campus-only super-only district-only community-only">
+      <i class="fas fa-network-wired"></i>
+      <h3>Register Cell</h3>
+    </a>
+    <a href="cell-dashboard.html" class="card campus-only super-only district-only community-only">
+      <i class="fas fa-table"></i>
+      <h3>View Cell</h3>
+    </a>
+
+    <!-- Members -->
+    <a href="cellMembership-registration.html" class="card district-only community-only cell-only super-only">
+      <i class="fas fa-user-plus"></i>
+      <h3>Register Members</h3>
+    </a>
+    <a href="members-dashboard.html" class="card community-only cell-only super-only">
+      <i class="fas fa-address-book"></i>
+      <h3>View Members</h3>
+    </a>
+  </div>
+
+  <script>
+    // ✅ Detect role + name from localStorage
+    const role = localStorage.getItem("role");
+    const name = localStorage.getItem("name");
+
+    if (!role) {
+      alert("Unauthorized. Please log in.");
+      window.location.href = "universal-login2.html";
+    }
+
+    // ✅ Show welcome note
+    document.getElementById("welcomeNote").textContent = `Welcome, ${name || "User"}`;
+
+    // Hide all cards first
+    document.querySelectorAll(".card").forEach(card => card.classList.add("hidden"));
+
+    // Show cards based on role
+    if (role === "superadmin") {
+      document.querySelectorAll(".super-only").forEach(card => card.classList.remove("hidden"));
+    } else if (role === "campus") {
+      document.querySelectorAll(".campus-only").forEach(card => card.classList.remove("hidden"));
+      document.querySelectorAll(".register-campus").forEach(card => card.classList.add("hidden")); // hide register campus
+    } else if (role === "district") {
+      document.querySelectorAll(".district-only").forEach(card => card.classList.remove("hidden"));
+      document.querySelectorAll(".register-district").forEach(card => card.classList.add("hidden")); // hide register district
+    } else if (role === "community") {
+      document.querySelectorAll(".community-only").forEach(card => card.classList.remove("hidden"));
+      document.querySelectorAll(".register-community").forEach(card => card.classList.add("hidden")); // hide register community
+    } else if (role === "cell") {
+      document.querySelectorAll(".cell-only").forEach(card => card.classList.remove("hidden"));
+    }
+  </script>
+</body>
+      </html>
