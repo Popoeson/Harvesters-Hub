@@ -544,22 +544,35 @@ app.post("/api/communities", upload.single("logo"), async (req, res) => {
   }
 });
 
-// Get communities
-app.get("/api/get/communities", async (req, res) => {
+// Get communities (all, or filtered by campus/district)
+app.get("/api/community", async (req, res) => {
   try {
-    const communities = await Community.find()
-      .populate("district", "name"); // Only return the district name
+    const filter = {};
 
-    res.json({
-      success: true,
-      data: communities
-    });
+    // If filtering by district
+    if (req.query.districtId) {
+      filter.district = req.query.districtId;
+    }
+
+    // If filtering by campus
+    if (req.query.campusId) {
+      // First get all districts under this campus
+      const districts = await District.find({ campus: req.query.campusId }).select("_id");
+      filter.district = { $in: districts.map(d => d._id) };
+    }
+
+    const communities = await Community.find(filter)
+      .populate({
+        path: "district",
+        select: "name campus",
+        populate: { path: "campus", select: "name email" } // so campus is available too
+      })
+      .sort({ createdAt: -1 });
+
+    res.json({ success: true, data: communities });
   } catch (err) {
     console.error("Error fetching communities:", err);
-    res.status(500).json({
-      success: false,
-      message: "Server error fetching communities"
-    });
+    res.status(500).json({ success: false, message: "Server error fetching communities" });
   }
 });
 
