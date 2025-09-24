@@ -109,7 +109,7 @@
     </tbody>
   </table>
 
- <script>
+<script>
   const BASE_URL = "https://harvesters-hub-fbgo.onrender.com/api";
   let members = [];
 
@@ -125,18 +125,23 @@
         return;
       }
 
-      let url = `${BASE_URL}/members`; // default = all
+      // ✅ Build request URL depending on role
+      let url = `${BASE_URL}/members`;
 
       if (role === "cell") {
-        // ✅ Only fetch members for this cell
-        url = `${BASE_URL}/members?cellId=${user.id}`;
+        url = `${BASE_URL}/members?roleId=cell&userId=${user.id}`;
+      } else if (role === "community") {
+        url = `${BASE_URL}/members?roleId=community&userId=${user.id}`;
+      } else {
+        alert("Not authorized to view members.");
+        return;
       }
 
       const res = await fetch(url);
       const data = await res.json();
 
-      if (data.success && Array.isArray(data.data)) {
-        members = data.data;
+      if (Array.isArray(data)) {
+        members = data;
         renderTable(members);
       } else {
         alert("Failed to load members.");
@@ -155,9 +160,9 @@
         <tr>
           <td>${index + 1}</td>
           <td>${member.fullName}</td>
-          <td>${member.email}</td>
-          <td>${member.phone}</td>
-          <td>${member.address}</td>
+          <td>${member.email || "N/A"}</td>
+          <td>${member.phone || "N/A"}</td>
+          <td>${member.address || "N/A"}</td>
           <td>${member.district?.name || "N/A"}</td>
           <td>${member.cell?.name || "N/A"}</td>
         </tr>
@@ -181,6 +186,6 @@
 
   // Run on load
   fetchMembers();
- </script>
+</script>
 </body>
   </html>
