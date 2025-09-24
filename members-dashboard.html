@@ -110,28 +110,33 @@
   </table>
 
  <script>
-  const BASE_URL = "https://harvesters-hub-fbgo.onrender.com";
-
+  const BASE_URL = "https://harvesters-hub-fbgo.onrender.com/api";
   let members = [];
 
   async function fetchMembers() {
     try {
-      // ✅ Get user session (saved at login)
-      const session = JSON.parse(localStorage.getItem("user"));
-      if (!session) {
+      // ✅ Get logged-in user & role
+      const user = JSON.parse(localStorage.getItem("user"));
+      const role = localStorage.getItem("role");
+
+      if (!user || !role) {
         alert("Not logged in");
         window.location.href = "login.html";
         return;
       }
 
-      // ✅ Pass roleId + userId to backend instead of userType
-        const res = await fetch(
-  `${BASE_URL}/api/members?roleId=${session.role}&userId=${session.id}`
-);
+      let url = `${BASE_URL}/members`; // default = all
+
+      if (role === "cell") {
+        // ✅ Only fetch members for this cell
+        url = `${BASE_URL}/members?cellId=${user.id}`;
+      }
+
+      const res = await fetch(url);
       const data = await res.json();
 
-      if (Array.isArray(data)) {
-        members = data;
+      if (data.success && Array.isArray(data.data)) {
+        members = data.data;
         renderTable(members);
       } else {
         alert("Failed to load members.");
@@ -165,9 +170,9 @@
     const query = document.getElementById("searchInput").value.toLowerCase();
     const filtered = members.filter(m =>
       m.fullName.toLowerCase().includes(query) ||
-      m.email.toLowerCase().includes(query) ||
-      m.phone.toLowerCase().includes(query) ||
-      m.address.toLowerCase().includes(query) ||
+      (m.email || "").toLowerCase().includes(query) ||
+      (m.phone || "").toLowerCase().includes(query) ||
+      (m.address || "").toLowerCase().includes(query) ||
       (m.district?.name || "").toLowerCase().includes(query) ||
       (m.cell?.name || "").toLowerCase().includes(query)
     );
