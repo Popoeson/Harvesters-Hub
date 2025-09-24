@@ -156,7 +156,7 @@ async function fetchDistricts() {
 }
 
 function renderDistricts(districts) {
-  const container = document.getElementById("districtList");
+  const container = document.getElementById("districtGrid");
   container.innerHTML = "";
   districts.forEach(d => {
     const div = document.createElement("div");
