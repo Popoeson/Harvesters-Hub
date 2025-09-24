@@ -684,42 +684,36 @@ app.post("/api/cell/login", async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 });
-
-// --------------------------------------------------
-// Get Cell (all, single, or filtered)
-// --------------------------------------------------
-app.get("/api/cell/:id?", async (req, res) => {
+// ======================
+// Fetch Members (Cell-specific only)
+// ======================
+app.get("/api/members", async (req, res) => {
   try {
-    if (req.params.id) {
-      // Single cell by ID
-      const cell = await Cell.findById(req.params.id)
-        .populate("campus", "name")
-        .populate("district", "name")
-        .populate("community", "name");
+    const { roleId, userId } = req.query; 
 
-      if (!cell) {
-        return res.status(404).json({ success: false, message: "Cell not found" });
+    let filter = {};
+
+    // ✅ Only return members for the logged-in cell
+    if (roleId === "cell") {
+      if (!mongoose.Types.ObjectId.isValid(userId)) {
+        return res.status(400).json({ message: "Invalid cell ID" });
       }
-      return res.json({ success: true, data: cell });
+      filter.cell = userId;
     }
 
-    // Filtering logic
-    const { campusId, districtId, communityId } = req.query;
-    const filter = {};
+    // ✅ For safety: block super admin, district, or campus roles
+    if (roleId !== "cell") {
+      return res.status(403).json({ message: "Not authorized to view members" });
+    }
 
-    if (campusId) filter.campus = campusId;
-    if (districtId) filter.district = districtId;
-    if (communityId) filter.community = communityId;
-
-    const cells = await Cell.find(filter)
-      .populate("campus", "name")
+    const members = await Member.find(filter)
       .populate("district", "name")
-      .populate("community", "name");
+      .populate("cell", "name");
 
-    res.json({ success: true, data: cells });
-  } catch (error) {
-    console.error("Error fetching cell:", error);
-    res.status(500).json({ success: false, message: "Server error" });
+    res.json(members);
+  } catch (err) {
+    console.error("Error fetching members:", err);
+    res.status(500).json({ message: "Server error", error: err.message });
   }
 });
 
