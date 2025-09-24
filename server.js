@@ -947,24 +947,42 @@ app.get("/api/cells/by-district/:districtId", async (req, res) => {
 //  }
 // });
 
+
 // ======================
-// Fetch Members (Cell users only for now)
+// Fetch Members (Cell or Community)
 // ======================
 app.get("/api/members", async (req, res) => {
   try {
     const { roleId, userId } = req.query; 
-
     let filter = {};
 
     if (roleId === "cell") {
+      // ✅ Cell: only its own members
       if (!mongoose.Types.ObjectId.isValid(userId)) {
         return res.status(400).json({ message: "Invalid cell ID" });
       }
-      filter.cell = userId; // no need to wrap again
+      filter.cell = userId;
+
+    } else if (roleId === "community") {
+      // ✅ Community: all members in all cells under this community
+      if (!mongoose.Types.ObjectId.isValid(userId)) {
+        return res.status(400).json({ message: "Invalid community ID" });
+      }
+
+      // Find all cells in this community
+      const cells = await Cell.find({ community: userId }).select("_id");
+      const cellIds = cells.map(c => c._id);
+
+      filter.cell = { $in: cellIds };
+
+    } else {
+      // ❌ Others not allowed
+      return res.status(403).json({ message: "Not authorized to view members" });
     }
 
     const members = await Member.find(filter)
       .populate("district", "name")
+      .populate("community", "name")
       .populate("cell", "name");
 
     res.json(members);
@@ -973,8 +991,6 @@ app.get("/api/members", async (req, res) => {
     res.status(500).json({ message: "Server error", error: err.message });
   }
 });
-
-
 
 // ✅ Register Super Admin
 app.post("/superadmin/register", async (req, res) => {
