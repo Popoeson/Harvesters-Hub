@@ -127,45 +127,56 @@
   </div>
 
   <script>
-const API_BASE = "https://harvesters-hub-fbgo.onrender.com/api";
-const user = JSON.parse(localStorage.getItem("user"));
-const role = localStorage.getItem("role");
+    const API_BASE = "https://harvesters-hub-fbgo.onrender.com/api";
+    const user = JSON.parse(localStorage.getItem("user"));
+    const role = localStorage.getItem("role");
 
-async function fetchDistricts() {
-  let url = `${API_BASE}/district`;
+    async function fetchDistricts() {
+      let url = `${API_BASE}/district`;
 
-  if (role === "campus") {
-    // Campus user → only their districts
-    url = `${API_BASE}/district?campusId=${user.id}`;
-  } else if (role === "superadmin") {
-    // Superadmin → all districts (no filter)
-    url = `${API_BASE}/district`;
-  }
+      if (role === "campus" && user?.id) {
+        url = `${API_BASE}/district?campusId=${user.id}`;
+      }
 
-  try {
-    const res = await fetch(url);
-    const data = await res.json();
-    if (data.success) {
-      renderDistricts(data.data);
-    } else {
-      alert("Failed to load districts");
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data.success) {
+          renderDistricts(data.data);
+        } else {
+          alert("Failed to load districts");
+        }
+      } catch (err) {
+        console.error("Error fetching districts", err);
+      }
     }
-  } catch (err) {
-    console.error("Error fetching districts", err);
-  }
-}
 
-function renderDistricts(districts) {
-  const container = document.getElementById("districtGrid");
-  container.innerHTML = "";
-  districts.forEach(d => {
-    const div = document.createElement("div");
-    div.textContent = `${d.name} (${d.campus?.name || "No campus"})`;
-    container.appendChild(div);
-  });
-}
+    function renderDistricts(districts) {
+      const container = document.getElementById("districtGrid");
+      container.innerHTML = "";
+      districts.forEach(d => {
+        const div = document.createElement("div");
+        div.className = "card";
+        div.innerHTML = `
+          <img src="${d.logo || 'uploads/default.png'}" alt="${d.name}">
+          <h3>${d.name}</h3>
+          <p>📍 Campus: ${d.campus?.name || "No campus"}</p>
+          <p class="email"><i class="fa fa-envelope"></i> ${d.email || "N/A"}</p>
+        `;
+        container.appendChild(div);
+      });
+    }
 
-fetchDistricts();
+    // Search filter
+    document.getElementById("searchInput").addEventListener("input", (e) => {
+      const value = e.target.value.toLowerCase();
+      document.querySelectorAll(".card").forEach(card => {
+        const text = card.innerText.toLowerCase();
+        card.style.display = text.includes(value) ? "block" : "none";
+      });
+    });
+
+    fetchDistricts();
   </script>
 </body>
 </html>
