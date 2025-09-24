@@ -133,65 +133,83 @@
   </div>
 
   <script>
-    const API_BASE = "https://harvesters-hub-fbgo.onrender.com/api";
-    const grid = document.getElementById("cellGrid");
-    const searchInput = document.getElementById("searchInput");
+  const API_BASE = "https://harvesters-hub-fbgo.onrender.com/api";
+  const grid = document.getElementById("cellGrid");
+  const searchInput = document.getElementById("searchInput");
 
-    let cellsData = [];
+  const user = JSON.parse(localStorage.getItem("user"));
+  const role = localStorage.getItem("role");
 
-    // Fetch cells
-    async function loadCells() {
-      try {
-        const res = await fetch(`${API_BASE}/cell`);
-        const data = await res.json();
-        if (data.success) {
-          cellsData = data.data;
-          renderCells(cellsData);
-        }
-      } catch (err) {
-        console.error("Error loading cells:", err);
+  let cellsData = [];
+
+  // Fetch cells based on role
+  async function loadCells() {
+    let url = `${API_BASE}/cell`;
+
+    if (role === "campus") {
+      url = `${API_BASE}/cell?campusId=${user.id}`;
+    } else if (role === "district") {
+      url = `${API_BASE}/cell?districtId=${user.id}`;
+    } else if (role === "community") {
+      url = `${API_BASE}/cell?communityId=${user.id}`;
+    } 
+    // superadmin → no filter (all cells)
+
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.success) {
+        cellsData = data.data;
+        renderCells(cellsData);
+      } else {
+        grid.innerHTML = "<p style='text-align:center; grid-column:1/-1;'>Failed to load cells.</p>";
       }
+    } catch (err) {
+      console.error("Error loading cells:", err);
+      grid.innerHTML = "<p style='text-align:center; grid-column:1/-1;'>Server error while loading cells.</p>";
+    }
+  }
+
+  // Render cells as cards
+  function renderCells(cells) {
+    grid.innerHTML = "";
+    if (cells.length === 0) {
+      grid.innerHTML = "<p style='text-align:center; grid-column:1/-1;'>No cells found.</p>";
+      return;
     }
 
-    // Render cells as cards
-    function renderCells(cells) {
-      grid.innerHTML = "";
-      if (cells.length === 0) {
-        grid.innerHTML = "<p style='text-align:center; grid-column:1/-1;'>No cells found.</p>";
-        return;
-      }
-
-      cells.forEach(cell => {
-        const card = document.createElement("div");
-        card.className = "card";
-        card.innerHTML = `
-          <img src="${cell.logo}" alt="Logo">
-          <h3>${cell.name}</h3>
-          <p>🏫 Campus: ${cell.campus?.name || "N/A"}</p>
-          <p>📍 District: ${cell.district?.name || "N/A"}</p>
-          <p>👥 Community: ${cell.community?.name || "N/A"}<p>
-          <p>📌 Address: ${cell.address || "N/A"}</p>
-          <p class="leader">👤 Leader: ${cell.leader || "N/A"} (${cell.phone || "N/A"})</p>
-          <p class="email"><i class="fa fa-envelope"></i> ${cell.email || "N/A"}</p>
-        `;
-        grid.appendChild(card);
-      });
-    }
-
-    // Search filter
-    searchInput.addEventListener("input", () => {
-      const term = searchInput.value.toLowerCase();
-      const filtered = cellsData.filter(cell =>
-        cell.name.toLowerCase().includes(term) ||
-        (cell.campus?.name || "").toLowerCase().includes(term) ||
-        (cell.district?.name || "").toLowerCase().includes(term) ||
-        (cell.leader || "").toLowerCase().includes(term)
-      );
-      renderCells(filtered);
+    cells.forEach(cell => {
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `
+        <img src="${cell.logo || 'uploads/default.png'}" alt="Logo">
+        <h3>${cell.name}</h3>
+        <p>🏫 Campus: ${cell.campus?.name || "N/A"}</p>
+        <p>📍 District: ${cell.district?.name || "N/A"}</p>
+        <p>👥 Community: ${cell.community?.name || "N/A"}</p>
+        <p>📌 Address: ${cell.address || "N/A"}</p>
+        <p class="leader">👤 Leader: ${cell.leader || "N/A"} (${cell.phone || "N/A"})</p>
+        <p class="email"><i class="fa fa-envelope"></i> ${cell.email || "N/A"}</p>
+      `;
+      grid.appendChild(card);
     });
+  }
 
-    // Init
-    loadCells();
+  // Search filter
+  searchInput.addEventListener("input", () => {
+    const term = searchInput.value.toLowerCase();
+    const filtered = cellsData.filter(cell =>
+      cell.name.toLowerCase().includes(term) ||
+      (cell.campus?.name || "").toLowerCase().includes(term) ||
+      (cell.district?.name || "").toLowerCase().includes(term) ||
+      (cell.community?.name || "").toLowerCase().includes(term) ||
+      (cell.leader || "").toLowerCase().includes(term)
+    );
+    renderCells(filtered);
+  });
+
+  // Init
+  loadCells();
   </script>
 </body>
   </html>
