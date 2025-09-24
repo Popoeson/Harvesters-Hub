@@ -136,7 +136,7 @@ async function fetchDistricts() {
 
   if (role === "campus") {
     // Campus user → only their districts
-    url = `${API_BASE}/district?campusId=${user._id}`;
+    url = `${API_BASE}/district?campusId=${user.id}`;
   } else if (role === "superadmin") {
     // Superadmin → all districts (no filter)
     url = `${API_BASE}/district`;
