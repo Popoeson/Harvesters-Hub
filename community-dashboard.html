@@ -132,61 +132,75 @@
   </div>
 
   <script>
-    const API_BASE = "https://harvesters-hub-fbgo.onrender.com";
-    const grid = document.getElementById("communityGrid");
-    const searchInput = document.getElementById("searchInput");
+  const API_BASE = "https://harvesters-hub-fbgo.onrender.com/api";
+  const grid = document.getElementById("communityGrid");
+  const searchInput = document.getElementById("searchInput");
 
-    let communitiesData = [];
+  const user = JSON.parse(localStorage.getItem("user"));
+  const role = localStorage.getItem("role");
 
-    // Fetch communities
-    async function loadCommunities() {
-      try {
-        const res = await fetch(`${API_BASE}/api/get/communities`);
-        const data = await res.json();
-        if (data.success) {
-          communitiesData = data.data;
-          renderCommunities(communitiesData);
-        }
-      } catch (err) {
-        console.error("Error loading communities:", err);
+  let communitiesData = [];
+
+  // Fetch communities based on role
+  async function loadCommunities() {
+    let url = `${API_BASE}/community`;
+
+    if (role === "campus") {
+      url = `${API_BASE}/community?campusId=${user.id}`;
+    } else if (role === "district") {
+      url = `${API_BASE}/community?districtId=${user.id}`;
+    } // superadmin → no filter (all communities)
+
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.success) {
+        communitiesData = data.data;
+        renderCommunities(communitiesData);
+      } else {
+        grid.innerHTML = "<p style='text-align:center; grid-column:1/-1;'>Failed to load communities.</p>";
       }
+    } catch (err) {
+      console.error("Error loading communities:", err);
+      grid.innerHTML = "<p style='text-align:center; grid-column:1/-1;'>Server error while loading communities.</p>";
+    }
+  }
+
+  // Render communities as cards
+  function renderCommunities(communities) {
+    grid.innerHTML = "";
+    if (communities.length === 0) {
+      grid.innerHTML = "<p style='text-align:center; grid-column:1/-1;'>No communities found.</p>";
+      return;
     }
 
-    // Render communities as cards
-    function renderCommunities(communities) {
-      grid.innerHTML = "";
-      if (communities.length === 0) {
-        grid.innerHTML = "<p style='text-align:center; grid-column:1/-1;'>No communities found.</p>";
-        return;
-      }
-
-      communities.forEach(community => {
-        const card = document.createElement("div");
-        card.className = "card";
-        card.innerHTML = `
-          <img src="${community.logo || 'uploads/default.png'}" alt="Logo">
-          <h3>${community.name}</h3>
-          <p>📍 District: ${community.district?.name || "N/A"}</p>
-          <p class="leader">👤 Leader: ${community.leader || "N/A"}</p>
-          <p class="phone"><i class="fa fa-phone"></i> ${community.leaderPhone || "N/A"}</p>
-        `;
-        grid.appendChild(card);
-      });
-    }
-
-    // Search filter
-    searchInput.addEventListener("input", () => {
-      const term = searchInput.value.toLowerCase();
-      const filtered = communitiesData.filter(community =>
-        community.name.toLowerCase().includes(term) ||
-        (community.district?.name || "").toLowerCase().includes(term) ||
-        (community.leader || "").toLowerCase().includes(term)
-      );
-      renderCommunities(filtered);
+    communities.forEach(community => {
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `
+        <img src="${community.logo || 'uploads/default.png'}" alt="Logo">
+        <h3>${community.name}</h3>
+        <p>📍 District: ${community.district?.name || "N/A"}</p>
+        <p class="leader">👤 Leader: ${community.leader || "N/A"}</p>
+        <p class="phone"><i class="fa fa-phone"></i> ${community.leaderPhone || "N/A"}</p>
+      `;
+      grid.appendChild(card);
     });
+  }
 
-    // Init
-    loadCommunities();
+  // Search filter
+  searchInput.addEventListener("input", () => {
+    const term = searchInput.value.toLowerCase();
+    const filtered = communitiesData.filter(community =>
+      community.name.toLowerCase().includes(term) ||
+      (community.district?.name || "").toLowerCase().includes(term) ||
+      (community.leader || "").toLowerCase().includes(term)
+    );
+    renderCommunities(filtered);
+  });
+
+  // Init
+  loadCommunities();
   </script>
 </body>
 </html>
