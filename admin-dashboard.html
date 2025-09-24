@@ -157,7 +157,7 @@
     }
 
     // ✅ Show welcome note
-    document.getElementById("welcomeNote").textContent = `Welcome, ${user || "User"}`;
+    document.getElementById("welcomeNote").textContent = `Welcome, ${name || "User"}`;
 
     // Hide all cards first
     document.querySelectorAll(".card").forEach(card => card.classList.add("hidden"));
