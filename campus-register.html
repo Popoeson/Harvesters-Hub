@@ -131,40 +131,58 @@
   </div>
 
   <script>
-    const API_URL = "https://harvesters-hub-fbgo.onrender.com/api/campus";
+  const API_URL = "https://harvesters-hub-fbgo.onrender.com/api/campus";
 
-    document.getElementById("campusForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
+  document.getElementById("campusForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-      const form = e.target;
-      const formData = new FormData(form);
+    const form = e.target;
+    const formData = new FormData(form);
 
-      try {
-        const res = await fetch(`${API_URL}/register`, {
-          method: "POST",
-          body: formData
-        });
+    // ✅ Clean & normalize input fields
+    let name = formData.get("name")?.trim().replace(/\s+/g, " ") || "";
+    let email = formData.get("email")?.trim().toLowerCase() || "";
+    let address = formData.get("address")?.trim().replace(/\s+/g, " ") || "";
+    let password = formData.get("password")?.trim() || "";
 
-        const data = await res.json();
-        const msgBox = document.getElementById("message");
+    // ✅ Build a new sanitized formData
+    const cleanData = new FormData();
+    cleanData.append("name", name);
+    cleanData.append("email", email);
+    cleanData.append("address", address);
+    cleanData.append("password", password);
 
-        if (data.success) {
-          msgBox.style.color = "green";
-          msgBox.textContent = "✅ Campus registered successfully! Redirecting to login...";
-          form.reset();
+    // keep logo if uploaded
+    if (formData.get("logo")) {
+      cleanData.append("logo", formData.get("logo"));
+    }
 
-          setTimeout(() => {
-            window.location.href = "campus-login.html"; // 🔑 redirect to login page
-          }, 2000);
-        } else {
-          msgBox.style.color = "red";
-          msgBox.textContent = "❌ " + (data.message || "Failed to register campus.");
-        }
-      } catch (err) {
-        console.error("Error:", err);
-        document.getElementById("message").textContent = "❌ Error submitting form.";
+    try {
+      const res = await fetch(`${API_URL}/register`, {
+        method: "POST",
+        body: cleanData
+      });
+
+      const data = await res.json();
+      const msgBox = document.getElementById("message");
+
+      if (data.success) {
+        msgBox.style.color = "green";
+        msgBox.textContent = "✅ Campus registered successfully! Redirecting to login...";
+        form.reset();
+
+        setTimeout(() => {
+          window.location.href = "campus-login.html"; // 🔑 redirect to login page
+        }, 2000);
+      } else {
+        msgBox.style.color = "red";
+        msgBox.textContent = "❌ " + (data.message || "Failed to register campus.");
       }
-    });
+    } catch (err) {
+      console.error("Error:", err);
+      document.getElementById("message").textContent = "❌ Error submitting form.";
+    }
+  });
   </script>
 
 </body>
