@@ -177,6 +177,10 @@
       if (res.ok) {
         alert("✅ District registered successfully!");
         e.target.reset();
+
+        setTimeout(() => {
+          window.location.href = "universal-login2.html"; // 🔑 redirect to login page
+        }, 2000);
       } else {
         alert("❌ " + (result.message || "Registration failed"));
       }
