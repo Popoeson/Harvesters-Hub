@@ -191,7 +191,7 @@
     if (!campusId) return;
 
     try {
-      const res = await fetch(`${API_BASE}/districts?campus=${campusId}`);
+      const res = await fetch(`${API_BASE}/district?campus=${campusId}`);
       const data = await res.json();
       if (data.success) {
         data.data.forEach(district => {
