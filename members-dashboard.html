@@ -121,39 +121,41 @@
 
       if (!user || !role) {
         alert("Not logged in");
-        window.location.href = "login.html";
+        window.location.href = "universal-login2.html";
         return;
       }
 
       // ✅ Build request URL depending on role
-      let url = `${BASE_URL}/members`;
+      let url = `${BASE_URL}/members?roleId=${role}&userId=${user.id}`;
 
-      if (role === "cell") {
-        url = `${BASE_URL}/members?roleId=cell&userId=${user.id}`;
-      } else if (role === "community") {
-        url = `${BASE_URL}/members?roleId=community&userId=${user.id}`;
-      } else {
-        alert("Not authorized to view members.");
-        return;
+      // For superadmin → no userId needed
+      if (role === "superadmin") {
+        url = `${BASE_URL}/members?roleId=superadmin`;
       }
 
       const res = await fetch(url);
       const data = await res.json();
 
-      if (Array.isArray(data)) {
-        members = data;
+      if (data.success && Array.isArray(data.data)) {
+        members = data.data;
         renderTable(members);
       } else {
         alert("Failed to load members.");
       }
     } catch (error) {
       console.error("Error fetching members:", error);
+      alert("Server error while fetching members.");
     }
   }
 
   function renderTable(list) {
     const tbody = document.querySelector("#membersTable tbody");
     tbody.innerHTML = "";
+
+    if (!list.length) {
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;">No members found</td></tr>`;
+      return;
+    }
 
     list.forEach((member, index) => {
       const row = `
@@ -186,6 +188,6 @@
 
   // Run on load
   fetchMembers();
-</script>
+  </script>
 </body>
   </html>
