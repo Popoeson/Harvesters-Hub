@@ -524,31 +524,46 @@ app.get("/api/district/:id?", async (req, res) => {
 // Register community with logo upload
 app.post("/api/communities", upload.single("logo"), async (req, res) => {
   try {
-    const { name, district, leader, leaderPhone, password } = req.body;
+    let { name, district, leader, leaderPhone, password } = req.body;
 
-    const existing = await Community.findOne({ name });
+    if (!name || !district || !leader || !leaderPhone || !password) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    // ✅ Trim fields
+    name = name.trim().toLowerCase();
+    leader = leader.trim();
+    leaderPhone = leaderPhone.trim();
+
+    // ✅ Case-insensitive duplicate check
+    const existing = await Community.findOne({
+      name: { $regex: new RegExp(`^${name}$`, "i") }
+    });
+
     if (existing) {
       return res.status(400).json({ message: "Community already exists" });
     }
 
-    const logoUrl = req.file?.path; // Cloudinary adds `path` with the secure_url
+    const logoUrl = req.file?.path || "";
 
     const community = new Community({
       name,
       district,
       leader,
       leaderPhone,
-      password,
+      password, // ⚠️ plain text, we’ll hash later
       logo: logoUrl
     });
 
     await community.save();
 
     res.status(201).json({
+      success: true,
       message: "Community registered successfully",
       community
     });
   } catch (err) {
+    console.error("Community registration error:", err);
     res.status(500).json({ message: "Server error", error: err.message });
   }
 });
