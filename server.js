@@ -684,53 +684,30 @@ app.post("/api/cell/login", async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 });
-// ======================
-// Fetch Members (Cell-specific only)
-// ======================
-app.get("/api/members", async (req, res) => {
-  try {
-    const { roleId, userId } = req.query; 
 
+// ======================
+// Fetch Cells
+// ======================
+app.get("/api/cell", async (req, res) => {
+  try {
+    const { campusId, districtId, communityId } = req.query;
     let filter = {};
 
-    // ✅ Only return members for the logged-in cell
-    if (roleId === "cell") {
-      if (!mongoose.Types.ObjectId.isValid(userId)) {
-        return res.status(400).json({ message: "Invalid cell ID" });
-      }
-      filter.cell = userId;
-    }
+    if (campusId) filter.campus = campusId;
+    if (districtId) filter.district = districtId;
+    if (communityId) filter.community = communityId;
 
-    // ✅ For safety: block super admin, district, or campus roles
-    if (roleId !== "cell") {
-      return res.status(403).json({ message: "Not authorized to view members" });
-    }
-
-    const members = await Member.find(filter)
+    const cells = await Cell.find(filter)
+      .populate("campus", "name")
       .populate("district", "name")
-      .populate("cell", "name");
+      .populate("community", "name");
 
-    res.json(members);
+    res.json({ success: true, data: cells });
   } catch (err) {
-    console.error("Error fetching members:", err);
-    res.status(500).json({ message: "Server error", error: err.message });
+    console.error("Error fetching cells:", err);
+    res.status(500).json({ success: false, message: "Server error", error: err.message });
   }
 });
-
-// ✅ Fetch districts under a campus (for dropdown)
-app.get("/api/districts", async (req, res) => {
-  try {
-    const { campus } = req.query;
-    let query = {};
-    if (campus) query.campus = campus;
-
-    const districts = await District.find(query).populate("campus", "name");
-    res.json({ success: true, data: districts });
-  } catch (err) {
-    res.status(500).json({ success: false, message: "Error fetching districts", error: err.message });
-  }
-});
-
 
 // --------------------------------------------------
 // Get Communities by District
