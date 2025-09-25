@@ -303,19 +303,25 @@ app.get("/api/uploads/:id", async (req, res) => {
 // --------------------------------------------------
 app.post("/api/campus/register", upload.single("logo"), async (req, res) => {
   try {
-    const { name, address, email, password } = req.body;
+    let { name, address, email, password } = req.body;
 
     if (!name || !address || !email || !password) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    // check if campus already exists
+    // ✅ Clean input (extra safety)
+    name = name.trim().replace(/\s+/g, " ");
+    address = address.trim().replace(/\s+/g, " ");
+    email = email.trim().toLowerCase();
+    password = password.trim();
+
+    // ✅ Check if campus already exists (case-insensitive email)
     const existing = await Campus.findOne({ email });
     if (existing) {
       return res.status(400).json({ message: "Campus already exists" });
     }
 
-    // multer-storage-cloudinary gives us secure_url in req.file.path
+    // ✅ Handle logo upload
     let logoUrl = "";
     if (req.file && req.file.path) {
       logoUrl = req.file.path;
@@ -326,7 +332,7 @@ app.post("/api/campus/register", upload.single("logo"), async (req, res) => {
       address,
       email,
       logo: logoUrl,
-      password, // plain password for now
+      password, // 🔐 hashing recommended later
     });
 
     await newCampus.save();
