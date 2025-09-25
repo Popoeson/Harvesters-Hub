@@ -310,7 +310,7 @@ app.post("/api/campus/register", upload.single("logo"), async (req, res) => {
     }
 
     // ✅ Clean input (extra safety)
-    name = name.trim().replace(/\s+/g, " ");
+    name = name.trim().replace(/\s+/g, " ").toLowerCase();
     address = address.trim().replace(/\s+/g, " ");
     email = email.trim().toLowerCase();
     password = password.trim();
@@ -399,17 +399,20 @@ app.get("/api/campus/:id?", async (req, res) => {
   }
 });
 
-
 // --------------------------------------------------
 // Register District
 // --------------------------------------------------
 app.post("/api/district/register", upload.single("logo"), async (req, res) => {
   try {
-    const { name, campus, email, password } = req.body;
+    let { name, campus, email, password } = req.body;
 
     if (!name || !campus || !email || !password) {
       return res.status(400).json({ message: "All fields are required" });
     }
+
+    // ✅ Trim and normalize
+    name = name.trim().toLowerCase();
+    email = email.trim().toLowerCase();
 
     // Check if campus exists
     const campusExists = await Campus.findById(campus);
@@ -433,7 +436,7 @@ app.post("/api/district/register", upload.single("logo"), async (req, res) => {
       name,
       campus,
       email,
-      password, // plain text
+      password, // plain text (to be hashed later)
       logo: logoUrl
     });
 
