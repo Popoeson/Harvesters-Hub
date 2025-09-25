@@ -924,50 +924,50 @@ app.get("/api/cells/by-district/:districtId", async (req, res) => {
 //  }
 // });
 
-
 // ======================
-// Fetch Members (Cell or Community)
+// Fetch Members (Super Admin, Community, Cell)
 // ======================
 app.get("/api/members", async (req, res) => {
   try {
     const { roleId, userId } = req.query; 
+
     let filter = {};
 
     if (roleId === "cell") {
-      // ✅ Cell: only its own members
+      // ✅ Only members of this cell
       if (!mongoose.Types.ObjectId.isValid(userId)) {
         return res.status(400).json({ message: "Invalid cell ID" });
       }
       filter.cell = userId;
 
     } else if (roleId === "community") {
-      // ✅ Community: all members in all cells under this community
+      // ✅ All members of cells under this community
       if (!mongoose.Types.ObjectId.isValid(userId)) {
         return res.status(400).json({ message: "Invalid community ID" });
       }
-
-      // Find all cells in this community
+      // get all cells under this community
       const cells = await Cell.find({ community: userId }).select("_id");
-      const cellIds = cells.map(c => c._id);
+      filter.cell = { $in: cells.map(c => c._id) };
 
-      filter.cell = { $in: cellIds };
+    } else if (roleId === "superadmin") {
+      // ✅ No filter → fetch all members
+      filter = {};
 
     } else {
-      // ❌ Others not allowed
       return res.status(403).json({ message: "Not authorized to view members" });
     }
 
     const members = await Member.find(filter)
       .populate("district", "name")
-      .populate("community", "name")
       .populate("cell", "name");
 
-    res.json(members);
+    res.json({ success: true, data: members });
   } catch (err) {
     console.error("Error fetching members:", err);
-    res.status(500).json({ message: "Server error", error: err.message });
+    res.status(500).json({ success: false, message: "Server error", error: err.message });
   }
 });
+
 
 // ✅ Register Super Admin
 app.post("/superadmin/register", async (req, res) => {
