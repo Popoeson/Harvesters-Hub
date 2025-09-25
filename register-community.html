@@ -135,29 +135,27 @@
   <script>
   const BASE_URL = "https://harvesters-hub-fbgo.onrender.com";
 
-// Load districts on page load
-async function loadDistricts() {
-  try {
-    const res = await fetch(`${BASE_URL}/api/district`);
-    const result = await res.json();
+  // Load districts on page load
+  async function loadDistricts() {
+    try {
+      const res = await fetch(`${BASE_URL}/api/district`);
+      const result = await res.json();
 
-    if (!result.success) {
-      throw new Error(result.message || "Failed to fetch districts");
+      if (!result.success) {
+        throw new Error(result.message || "Failed to fetch districts");
+      }
+
+      const select = document.getElementById("district");
+      result.data.forEach(d => {
+        const option = document.createElement("option");
+        option.value = d._id;
+        option.textContent = d.name;
+        select.appendChild(option);
+      });
+    } catch (err) {
+      console.error("Error loading districts:", err);
     }
-
-    const districts = result.data;
-    const select = document.getElementById("district");
-
-    districts.forEach(d => {
-      const option = document.createElement("option");
-      option.value = d._id;
-      option.textContent = d.name;
-      select.appendChild(option);
-    });
-  } catch (err) {
-    console.error("Error loading districts:", err);
   }
-    }
 
   document.getElementById("communityForm").addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -171,18 +169,25 @@ async function loadDistricts() {
     spinner.style.display = "inline-block";
     submitBtn.disabled = true;
 
+    // ✅ Trim before sending
+    const name = document.getElementById("name").value.trim().toLowerCase();
+    const leader = document.getElementById("leader").value.trim();
+    const leaderPhone = document.getElementById("leaderPhone").value.trim();
+    const password = document.getElementById("password").value.trim();
+    const district = document.getElementById("district").value;
+
     const formData = new FormData();
-    formData.append("name", document.getElementById("name").value);
-    formData.append("leader", document.getElementById("leader").value);
-    formData.append("leaderPhone", document.getElementById("leaderPhone").value);
-    formData.append("password", document.getElementById("password").value);
-    formData.append("district", document.getElementById("district").value);
+    formData.append("name", name);
+    formData.append("leader", leader);
+    formData.append("leaderPhone", leaderPhone);
+    formData.append("password", password);
+    formData.append("district", district);
     formData.append("logo", document.getElementById("logo").files[0]);
 
     try {
       const res = await fetch(`${BASE_URL}/api/communities`, {
         method: "POST",
-        body: formData // <-- send formData directly (no headers here!)
+        body: formData
       });
 
       const data = await res.json();
@@ -191,6 +196,7 @@ async function loadDistricts() {
         messageEl.textContent = "✅ Community registered successfully!";
         messageEl.style.color = "green";
         document.getElementById("communityForm").reset();
+        
       } else {
         messageEl.textContent = data.message || "❌ Failed to register community";
         messageEl.style.color = "red";
@@ -205,8 +211,9 @@ async function loadDistricts() {
       submitBtn.disabled = false;
     }
   });
-    // Run on page load
-loadDistricts();
-      </script>
+
+  // Run on page load
+  loadDistricts();
+  </script>
 </body>
 </html>
