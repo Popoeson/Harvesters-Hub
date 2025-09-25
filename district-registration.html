@@ -133,54 +133,61 @@
   </div>
 
   <script>
-    const API_BASE = "https://harvesters-hub-fbgo.onrender.com/api";
+  const API_BASE = "https://harvesters-hub-fbgo.onrender.com/api";
 
-    // Populate campuses dropdown
-    async function loadCampuses() {
-      try {
-        const res = await fetch(`${API_BASE}/campus`);
-        const data = await res.json();
+  // Populate campuses dropdown
+  async function loadCampuses() {
+    try {
+      const res = await fetch(`${API_BASE}/campus`);
+      const data = await res.json();
 
-        if (data.success) {
-          const campusSelect = document.getElementById("campus");
-          data.data.forEach(campus => {
-            const option = document.createElement("option");
-            option.value = campus._id;
-            option.textContent = campus.name;
-            campusSelect.appendChild(option);
-          });
-        }
-      } catch (err) {
-        console.error("Error loading campuses:", err);
-      }
-    }
-
-    // Handle district registration
-    document.getElementById("districtForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const formData = new FormData(e.target);
-
-      try {
-        const res = await fetch(`${API_BASE}/district/register`, {
-          method: "POST",
-          body: formData
+      if (data.success) {
+        const campusSelect = document.getElementById("campus");
+        data.data.forEach(campus => {
+          const option = document.createElement("option");
+          option.value = campus._id;
+          option.textContent = campus.name;
+          campusSelect.appendChild(option);
         });
-        const result = await res.json();
-
-        if (res.ok) {
-          alert("✅ District registered successfully!");
-          e.target.reset();
-        } else {
-          alert("❌ " + (result.message || "Registration failed"));
-        }
-      } catch (err) {
-        console.error("Error:", err);
-        alert("❌ Server error");
       }
-    });
+    } catch (err) {
+      console.error("Error loading campuses:", err);
+    }
+  }
 
-    // Init
-    loadCampuses();
+  // Handle district registration
+  document.getElementById("districtForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData(e.target);
+
+    // ✅ Trim and normalize fields before sending
+    let name = formData.get("name")?.trim().toLowerCase();
+    let email = formData.get("email")?.trim().toLowerCase();
+    formData.set("name", name);
+    formData.set("email", email);
+
+    try {
+      const res = await fetch(`${API_BASE}/district/register`, {
+        method: "POST",
+        body: formData
+      });
+      const result = await res.json();
+
+      if (res.ok) {
+        alert("✅ District registered successfully!");
+        e.target.reset();
+      } else {
+        alert("❌ " + (result.message || "Registration failed"));
+      }
+    } catch (err) {
+      console.error("Error:", err);
+      alert("❌ Server error");
+    }
+  });
+
+  // Init
+  loadCampuses();
   </script>
 </body>
           </html>
