@@ -259,6 +259,10 @@
         e.target.reset();
         document.getElementById("district").innerHTML = '<option value="">-- Select District --</option>';
         document.getElementById("community").innerHTML = '<option value="">-- Select Community --</option>';
+
+    setTimeout(() => {
+          window.location.href = "universal-login2.html"; // 🔑 redirect to login page
+        }, 2000);
       } else {
         alert("❌ " + (result.message || "Registration failed"));
       }
