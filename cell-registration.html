@@ -160,104 +160,116 @@
   </div>
 
   <script>
-    const API_BASE = "https://harvesters-hub-fbgo.onrender.com/api";
+  const API_BASE = "https://harvesters-hub-fbgo.onrender.com/api";
 
-    // Load campuses
-    async function loadCampuses() {
-      try {
-        const res = await fetch(`${API_BASE}/campus`);
-        const data = await res.json();
-        if (data.success) {
-          const campusSelect = document.getElementById("campus");
-          data.data.forEach(campus => {
-            const option = document.createElement("option");
-            option.value = campus._id;
-            option.textContent = campus.name;
-            campusSelect.appendChild(option);
-          });
-        }
-      } catch (err) {
-        console.error("Error loading campuses:", err);
-      }
-    }
-
-    // Load districts when campus changes
-    document.getElementById("campus").addEventListener("change", async (e) => {
-      const campusId = e.target.value;
-      const districtSelect = document.getElementById("district");
-      districtSelect.innerHTML = '<option value="">-- Select District --</option>';
-      document.getElementById("community").innerHTML = '<option value="">-- Select Community --</option>';
-
-      if (!campusId) return;
-
-      try {
-        const res = await fetch(`${API_BASE}/districts?campus=${campusId}`);
-        const data = await res.json();
-        if (data.success) {
-          data.data.forEach(district => {
-            const option = document.createElement("option");
-            option.value = district._id;
-            option.textContent = district.name;
-            districtSelect.appendChild(option);
-          });
-        }
-      } catch (err) {
-        console.error("Error loading districts:", err);
-      }
-    });
-
-    // Load communities when district changes
-    document.getElementById("district").addEventListener("change", async (e) => {
-      const districtId = e.target.value;
-      const communitySelect = document.getElementById("community");
-      communitySelect.innerHTML = '<option value="">-- Select Community --</option>';
-
-      if (!districtId) return;
-
-      try {
-        const res = await fetch(`${API_BASE}/communities?district=${districtId}`);
-        const data = await res.json();
-        if (data.success) {
-          data.data.forEach(community => {
-            const option = document.createElement("option");
-            option.value = community._id;
-            option.textContent = community.name;
-            communitySelect.appendChild(option);
-          });
-        }
-      } catch (err) {
-        console.error("Error loading communities:", err);
-      }
-    });
-
-    // Handle form submit
-    document.getElementById("cellForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const formData = new FormData(e.target);
-
-      try {
-        const res = await fetch(`${API_BASE}/cell/register`, {
-          method: "POST",
-          body: formData
+  // Load campuses
+  async function loadCampuses() {
+    try {
+      const res = await fetch(`${API_BASE}/campus`);
+      const data = await res.json();
+      if (data.success) {
+        const campusSelect = document.getElementById("campus");
+        data.data.forEach(campus => {
+          const option = document.createElement("option");
+          option.value = campus._id;
+          option.textContent = campus.name;
+          campusSelect.appendChild(option);
         });
-        const result = await res.json();
-
-        if (res.ok && result.success) {
-          alert("✅ Cell registered successfully!");
-          e.target.reset();
-          document.getElementById("district").innerHTML = '<option value="">-- Select District --</option>';
-          document.getElementById("community").innerHTML = '<option value="">-- Select Community --</option>';
-        } else {
-          alert("❌ " + (result.message || "Registration failed"));
-        }
-      } catch (err) {
-        console.error("Error submitting form:", err);
-        alert("❌ Server error");
       }
-    });
+    } catch (err) {
+      console.error("Error loading campuses:", err);
+    }
+  }
 
-    // Init
-    loadCampuses();
+  // Load districts when campus changes
+  document.getElementById("campus").addEventListener("change", async (e) => {
+    const campusId = e.target.value;
+    const districtSelect = document.getElementById("district");
+    districtSelect.innerHTML = '<option value="">-- Select District --</option>';
+    document.getElementById("community").innerHTML = '<option value="">-- Select Community --</option>';
+
+    if (!campusId) return;
+
+    try {
+      const res = await fetch(`${API_BASE}/districts?campus=${campusId}`);
+      const data = await res.json();
+      if (data.success) {
+        data.data.forEach(district => {
+          const option = document.createElement("option");
+          option.value = district._id;
+          option.textContent = district.name;
+          districtSelect.appendChild(option);
+        });
+      }
+    } catch (err) {
+      console.error("Error loading districts:", err);
+    }
+  });
+
+  // Load communities when district changes
+  document.getElementById("district").addEventListener("change", async (e) => {
+    const districtId = e.target.value;
+    const communitySelect = document.getElementById("community");
+    communitySelect.innerHTML = '<option value="">-- Select Community --</option>';
+
+    if (!districtId) return;
+
+    try {
+      const res = await fetch(`${API_BASE}/communities?district=${districtId}`);
+      const data = await res.json();
+      if (data.success) {
+        data.data.forEach(community => {
+          const option = document.createElement("option");
+          option.value = community._id;
+          option.textContent = community.name;
+          communitySelect.appendChild(option);
+        });
+      }
+    } catch (err) {
+      console.error("Error loading communities:", err);
+    }
+  });
+
+  // Handle form submit
+  document.getElementById("cellForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    // ✅ Trim inputs before submission
+    const formData = new FormData();
+    formData.append("name", document.getElementById("name").value.trim().toLowerCase());
+    formData.append("campus", document.getElementById("campus").value);
+    formData.append("district", document.getElementById("district").value);
+    formData.append("community", document.getElementById("community").value);
+    formData.append("address", document.getElementById("address").value.trim());
+    formData.append("leader", document.getElementById("leader").value.trim());
+    formData.append("phone", document.getElementById("phone").value.trim());
+    formData.append("email", document.getElementById("email").value.trim().toLowerCase());
+    formData.append("password", document.getElementById("password").value.trim());
+    formData.append("logo", document.getElementById("logo").files[0]);
+
+    try {
+      const res = await fetch(`${API_BASE}/cell/register`, {
+        method: "POST",
+        body: formData
+      });
+      const result = await res.json();
+
+      if (res.ok && result.success) {
+        alert("✅ Cell registered successfully!");
+        e.target.reset();
+        document.getElementById("district").innerHTML = '<option value="">-- Select District --</option>';
+        document.getElementById("community").innerHTML = '<option value="">-- Select Community --</option>';
+      } else {
+        alert("❌ " + (result.message || "Registration failed"));
+      }
+    } catch (err) {
+      console.error("Error submitting form:", err);
+      alert("❌ Server error");
+    }
+  });
+
+  // Init
+  loadCampuses();
   </script>
 </body>
         </html>
