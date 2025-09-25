@@ -629,14 +629,24 @@ app.post("/login", async (req, res) => {
 // ✅ Register Cell
 app.post("/api/cell/register", upload.single("logo"), async (req, res) => {
   try {
-    const { name, campus, district, community, address, leader, phone, email, password } = req.body;
+    let { name, campus, district, community, address, leader, phone, email, password } = req.body;
 
-    if (!name || !campus || !district || ! community || !address || !leader || !phone || !email || !password) {
+    if (!name || !campus || !district || !community || !address || !leader || !phone || !email || !password) {
       return res.status(400).json({ success: false, message: "All fields are required" });
     }
 
-    // check if email exists
-    const existing = await Cell.findOne({ email });
+    // ✅ Trim & normalize
+    name = name.trim().toLowerCase();
+    email = email.trim().toLowerCase();
+    leader = leader.trim();
+    phone = phone.trim();
+    address = address.trim();
+
+    // ✅ Case-insensitive email check
+    const existing = await Cell.findOne({
+      email: { $regex: new RegExp(`^${email}$`, "i") }
+    });
+
     if (existing) {
       return res.status(400).json({ success: false, message: "Cell already exists" });
     }
@@ -655,7 +665,7 @@ app.post("/api/cell/register", upload.single("logo"), async (req, res) => {
       leader,
       phone,
       email,
-      password,
+      password, // ⚠️ still plain, we’ll hash later
       logo: logoUrl,
     });
 
@@ -663,6 +673,7 @@ app.post("/api/cell/register", upload.single("logo"), async (req, res) => {
 
     res.status(201).json({ success: true, message: "Cell registered successfully", data: newCell });
   } catch (err) {
+    console.error("Cell registration error:", err);
     res.status(500).json({ success: false, message: "Error registering cell", error: err.message });
   }
 });
