@@ -197,6 +197,12 @@
         messageEl.style.color = "green";
         document.getElementById("communityForm").reset();
         
+        setTimeout(() => {
+          window.location.href = "universal-login2.html"; // 🔑 redirect to login page
+        }, 2000);
+      } else {
+        alert("❌ " + (result.message || "Registration failed"));
+    }
       } else {
         messageEl.textContent = data.message || "❌ Failed to register community";
         messageEl.style.color = "red";
