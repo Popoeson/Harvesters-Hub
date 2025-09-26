@@ -166,11 +166,11 @@
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    // Show spinner
     btnText.textContent = "Logging in...";
     spinner.style.display = "inline-block";
 
-    const identifier = document.getElementById("identifier").value.trim();
+    // 👇 normalize to lowercase
+    const identifier = document.getElementById("identifier").value.trim().toLowerCase();
     const password = document.getElementById("password").value.trim();
 
     try {
@@ -185,11 +185,9 @@
         messageDiv.style.color = "green";
         messageDiv.textContent = "✅ Login successful! Redirecting...";
 
-        // Save user + role to localStorage
         localStorage.setItem("user", JSON.stringify(result.user));
         localStorage.setItem("role", result.role);
 
-        // Redirect after 1.5s
         setTimeout(() => {
           window.location.href = "admin-dashboard.html";
         }, 1500);
@@ -204,7 +202,6 @@
       messageDiv.textContent = "❌ Server error";
       console.error(err);
     } finally {
-      // Hide spinner
       btnText.textContent = "Login";
       spinner.style.display = "none";
     }
