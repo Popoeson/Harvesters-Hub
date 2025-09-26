@@ -856,7 +856,7 @@ app.post("/api/universal-login", async (req, res) => {
 });
 
 // ======================
-// Universal Login 2
+// Universal Login 2 (Refined)
 // ======================
 app.post("/api/universal-login2", async (req, res) => {
   try {
@@ -866,37 +866,45 @@ app.post("/api/universal-login2", async (req, res) => {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    // 👇 normalize to lowercase
+    // 👇 normalize identifier
     identifier = identifier.trim().toLowerCase();
 
     let user = null;
     let role = "";
 
     // 1. Campus
-    user = await Campus.findOne({ $or: [{ email: identifier }, { name: identifier }] });
+    user = await Campus.findOne({ 
+      $or: [{ email: identifier }, { normalizedName: identifier }] 
+    });
     if (user) role = "campus";
 
     // 2. District
     if (!user) {
-      user = await District.findOne({ $or: [{ email: identifier }, { name: identifier }] });
+      user = await District.findOne({ 
+        $or: [{ email: identifier }, { normalizedName: identifier }] 
+      });
       if (user) role = "district";
     }
 
     // 3. Community
     if (!user) {
-      user = await Community.findOne({ $or: [{ email: identifier }, { name: identifier }] });
+      user = await Community.findOne({ 
+        $or: [{ email: identifier }, { normalizedName: identifier }] 
+      });
       if (user) role = "community";
     }
 
     // 4. Cell
     if (!user) {
-      user = await Cell.findOne({ $or: [{ email: identifier }, { name: identifier }] });
+      user = await Cell.findOne({ 
+        $or: [{ email: identifier }, { normalizedName: identifier }] 
+      });
       if (user) role = "cell";
     }
 
     // 5. Super Admin
     if (!user) {
-      user = await SuperAdmin.findOne({ name: identifier });
+      user = await SuperAdmin.findOne({ normalizedName: identifier });
       if (user) role = "superadmin";
     }
 
@@ -904,9 +912,8 @@ app.post("/api/universal-login2", async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Compare password (still plain-text for now ❗)
-    const isMatch = password === user.password;
-    if (!isMatch) {
+    // Compare password (⚠️ still plain-text for now)
+    if (password !== user.password) {
       return res.status(400).json({ message: "Invalid password" });
     }
 
@@ -915,7 +922,7 @@ app.post("/api/universal-login2", async (req, res) => {
       role,
       user: {
         id: user._id,
-        name: user.name || user.email,
+        name: user.name,   // 👈 always return the original case-preserved name
         email: user.email || "",
         logo: user.logo || ""
       }
@@ -926,7 +933,6 @@ app.post("/api/universal-login2", async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
-
 
 // ======================
 // Register a Member
