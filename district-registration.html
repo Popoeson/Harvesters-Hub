@@ -162,7 +162,7 @@
     const formData = new FormData(e.target);
 
     // ✅ Trim and normalize fields before sending
-    let name = formData.get("name")?.trim().toLowerCase();
+    let name = formData.get("name")?.trim();
     let email = formData.get("email")?.trim().toLowerCase();
     formData.set("name", name);
     formData.set("email", email);
