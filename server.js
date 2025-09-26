@@ -824,11 +824,14 @@ app.post("/api/universal-login", async (req, res) => {
 // ======================
 app.post("/api/universal-login2", async (req, res) => {
   try {
-    const { identifier, password } = req.body; // identifier = email | name
+    let { identifier, password } = req.body;
 
     if (!identifier || !password) {
       return res.status(400).json({ message: "All fields are required" });
     }
+
+    // 👇 normalize to lowercase
+    identifier = identifier.trim().toLowerCase();
 
     let user = null;
     let role = "";
@@ -865,13 +868,12 @@ app.post("/api/universal-login2", async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Compare password
-    const isMatch = password === user.password; // ❗ plain-text for now
+    // Compare password (still plain-text for now ❗)
+    const isMatch = password === user.password;
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid password" });
     }
 
-    // ✅ Return role + user details
     res.json({
       message: "Login successful",
       role,
@@ -888,6 +890,7 @@ app.post("/api/universal-login2", async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
+
 
 // ======================
 // Register a Member
