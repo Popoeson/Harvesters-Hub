@@ -166,6 +166,7 @@ const memberSchema = new mongoose.Schema({
 // ✅ SuperAdmin Schema
 const superAdminSchema = new mongoose.Schema({
   name: { type: String, required: true, unique: true },
+  normalizedName: { type: String, required: true, lowercase: true },
   password: { type: String, required: true },
   createdAt: { type: Date, default: Date.now }
 });
@@ -1049,21 +1050,32 @@ app.get("/api/members", async (req, res) => {
 });
 
 
-// ✅ Register Super Admin
+// ✅ Register Super Admin (Refined)
 app.post("/superadmin/register", async (req, res) => {
   try {
-    const { name, password } = req.body;
+    let { name, password } = req.body;
 
     if (!name || !password) {
       return res.status(400).json({ success: false, message: "All fields are required" });
     }
 
-    const exists = await SuperAdmin.findOne({ name });
+    // Clean + normalize
+    const cleanName = name.trim().replace(/\s+/g, " "); // collapse multiple spaces
+    const normalizedName = cleanName.toLowerCase();
+
+    // Check if super admin already exists (case-insensitive)
+    const exists = await SuperAdmin.findOne({ normalizedName });
     if (exists) {
       return res.status(400).json({ success: false, message: "Super Admin already exists" });
     }
 
-    const superAdmin = await SuperAdmin.create({ name, password });
+    // Save both case-preserved and normalized name
+    const superAdmin = await SuperAdmin.create({
+      name: cleanName,          // for display (e.g. "Anthony Admin")
+      normalizedName,           // for login
+      password                  // ⚠️ plain for now, hash later
+    });
+
     res.status(201).json({
       success: true,
       message: "Super Admin registered successfully",
@@ -1073,6 +1085,7 @@ app.post("/superadmin/register", async (req, res) => {
       }
     });
   } catch (err) {
+    console.error("Super Admin registration error:", err);
     res.status(500).json({ success: false, message: "Server error", error: err.message });
   }
 });
