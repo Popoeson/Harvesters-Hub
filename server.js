@@ -82,6 +82,7 @@ const ImageSchema = new mongoose.Schema(
 
 const campusSchema = new mongoose.Schema({
   name: { type: String, required: true },
+  normalizedName: { type: String, required: true, lowercase: true },
   address: { type: String, required: true },
   logo: { type: String },
   email: { type: String, required: true, unique: true },
@@ -91,6 +92,7 @@ const campusSchema = new mongoose.Schema({
 
 const districtSchema = new mongoose.Schema({
   name: { type: String, required: true },
+  normalizedName: { type: String, required: true, lowercase: true },
   campus: { type: mongoose.Schema.Types.ObjectId, ref: "Campus", required: true }, // linked campus
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true }, // stored plain for now
@@ -103,6 +105,7 @@ const communitySchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
+  normalizedName: { type: String, required: true, lowercase: true },
   district: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "District",
@@ -138,6 +141,7 @@ const communitySchema = new mongoose.Schema({
 // });
 const cellSchema = new mongoose.Schema({
   name: { type: String, required: true },
+  normalizedName: { type: String, required: true, lowercase: true },
   campus: { type: mongoose.Schema.Types.ObjectId, ref: "Campus", required: true },
   district: { type: mongoose.Schema.Types.ObjectId, ref: "District", required: true },
   community: { type: mongoose.Schema.Types.ObjectId, ref: "Community", required: true },
@@ -309,14 +313,20 @@ app.post("/api/campus/register", upload.single("logo"), async (req, res) => {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    // ✅ Clean input (extra safety)
-    name = name.trim().replace(/\s+/g, " ").toLowerCase();
+    // ✅ Keep original for display
+    const displayName = name.trim().replace(/\s+/g, " ");
+
+    // ✅ Normalized for login & uniqueness
+    const normalizedName = displayName.toLowerCase();
+
     address = address.trim().replace(/\s+/g, " ");
     email = email.trim().toLowerCase();
     password = password.trim();
 
-    // ✅ Check if campus already exists (case-insensitive email)
-    const existing = await Campus.findOne({ email });
+    // ✅ Check if campus already exists (email OR normalizedName)
+    const existing = await Campus.findOne({
+      $or: [{ email }, { normalizedName }]
+    });
     if (existing) {
       return res.status(400).json({ message: "Campus already exists" });
     }
@@ -328,11 +338,12 @@ app.post("/api/campus/register", upload.single("logo"), async (req, res) => {
     }
 
     const newCampus = new Campus({
-      name,
+      name: displayName,        // readable name
+      normalizedName,           // stored for login matching
       address,
       email,
       logo: logoUrl,
-      password, // 🔐 hashing recommended later
+      password, // ⚠️ consider hashing
     });
 
     await newCampus.save();
@@ -343,6 +354,7 @@ app.post("/api/campus/register", upload.single("logo"), async (req, res) => {
       campus: newCampus,
     });
   } catch (error) {
+    console.error("Campus register error:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 });
@@ -400,7 +412,7 @@ app.get("/api/campus/:id?", async (req, res) => {
 });
 
 // --------------------------------------------------
-// Register District
+// Register District (Refined)
 // --------------------------------------------------
 app.post("/api/district/register", upload.single("logo"), async (req, res) => {
   try {
@@ -410,33 +422,42 @@ app.post("/api/district/register", upload.single("logo"), async (req, res) => {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    // ✅ Trim and normalize
-    name = name.trim().toLowerCase();
+    // ✅ Keep readable name
+    const cleanName = name.trim().replace(/\s+/g, " ");
+    // ✅ Normalized version for uniqueness & login
+    const normalizedName = cleanName.toLowerCase();
     email = email.trim().toLowerCase();
+    password = password.trim();
 
-    // Check if campus exists
+    // ✅ Check if campus exists
     const campusExists = await Campus.findById(campus);
     if (!campusExists) {
       return res.status(400).json({ message: "Invalid campus ID" });
     }
 
-    // Check if district email already exists
-    const existing = await District.findOne({ email });
+    // ✅ Check uniqueness (by email or normalizedName)
+    const existing = await District.findOne({
+      $or: [
+        { email },
+        { normalizedName }
+      ]
+    });
     if (existing) {
       return res.status(400).json({ message: "District already exists" });
     }
 
-    // Handle logo upload
+    // ✅ Handle logo upload
     let logoUrl = "";
     if (req.file && req.file.path) {
       logoUrl = req.file.path;
     }
 
     const newDistrict = new District({
-      name,
+      name: cleanName,         // Display name
+      normalizedName,          // For login checks
       campus,
       email,
-      password, // plain text (to be hashed later)
+      password, // ⚠️ still plain text — hash later
       logo: logoUrl
     });
 
@@ -521,7 +542,9 @@ app.get("/api/district/:id?", async (req, res) => {
   }
 });
 
-// Register community with logo upload
+// --------------------------------------------------
+// Register Community (Refined)
+// --------------------------------------------------
 app.post("/api/communities", upload.single("logo"), async (req, res) => {
   try {
     let { name, district, leader, leaderPhone, password } = req.body;
@@ -530,28 +553,34 @@ app.post("/api/communities", upload.single("logo"), async (req, res) => {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    // ✅ Trim fields
-    name = name.trim().toLowerCase();
-    leader = leader.trim();
+    // ✅ Keep readable name & normalized name
+    const cleanName = name.trim().replace(/\s+/g, " ");
+    const normalizedName = cleanName.toLowerCase();
+
+    leader = leader.trim().replace(/\s+/g, " ");
     leaderPhone = leaderPhone.trim();
+    password = password.trim();
 
     // ✅ Case-insensitive duplicate check
     const existing = await Community.findOne({
-      name: { $regex: new RegExp(`^${name}$`, "i") }
+      $or: [
+        { normalizedName },
+      ]
     });
-
     if (existing) {
       return res.status(400).json({ message: "Community already exists" });
     }
 
+    // ✅ Handle logo upload
     const logoUrl = req.file?.path || "";
 
     const community = new Community({
-      name,
+      name: cleanName,      // readable version
+      normalizedName,       // lowercased version
       district,
       leader,
       leaderPhone,
-      password, // ⚠️ plain text, we’ll hash later
+      password, // ⚠️ plain text — hashing recommended later
       logo: logoUrl
     });
 
@@ -564,7 +593,7 @@ app.post("/api/communities", upload.single("logo"), async (req, res) => {
     });
   } catch (err) {
     console.error("Community registration error:", err);
-    res.status(500).json({ message: "Server error", error: err.message });
+    res.status(500).json({ success: false, message: "Server error", error: err.message });
   }
 });
 
@@ -625,8 +654,9 @@ app.post("/login", async (req, res) => {
   }
 });
       
-
+//=========================
 // ✅ Register Cell
+//==========================
 app.post("/api/cell/register", upload.single("logo"), async (req, res) => {
   try {
     let { name, campus, district, community, address, leader, phone, email, password } = req.body;
@@ -635,16 +665,21 @@ app.post("/api/cell/register", upload.single("logo"), async (req, res) => {
       return res.status(400).json({ success: false, message: "All fields are required" });
     }
 
-    // ✅ Trim & normalize
-    name = name.trim().toLowerCase();
+    // ✅ Clean inputs
+    const cleanName = name.trim().replace(/\s+/g, " ");
+    const normalizedName = cleanName.toLowerCase();
+
     email = email.trim().toLowerCase();
     leader = leader.trim();
     phone = phone.trim();
     address = address.trim();
 
-    // ✅ Case-insensitive email check
+    // ✅ Case-insensitive duplicate check
     const existing = await Cell.findOne({
-      email: { $regex: new RegExp(`^${email}$`, "i") }
+      $or: [
+        { normalizedName }, // check against lowercase version
+        { email }
+      ]
     });
 
     if (existing) {
@@ -653,11 +688,12 @@ app.post("/api/cell/register", upload.single("logo"), async (req, res) => {
 
     let logoUrl = "";
     if (req.file) {
-      logoUrl = req.file.path; // Cloudinary auto uploads via multer-storage-cloudinary
+      logoUrl = req.file.path;
     }
 
     const newCell = new Cell({
-      name,
+      name: cleanName,             // save with original capitalization
+      normalizedName,              // hidden field for login/search
       campus,
       district,
       community,
@@ -665,7 +701,7 @@ app.post("/api/cell/register", upload.single("logo"), async (req, res) => {
       leader,
       phone,
       email,
-      password, // ⚠️ still plain, we’ll hash later
+      password, // ⚠️ still plain text (to hash later)
       logo: logoUrl,
     });
 
