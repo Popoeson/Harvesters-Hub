@@ -236,7 +236,7 @@
 
     // ✅ Trim inputs before submission
     const formData = new FormData();
-    formData.append("name", document.getElementById("name").value.trim().toLowerCase());
+    formData.append("name", document.getElementById("name").value.trim());
     formData.append("campus", document.getElementById("campus").value);
     formData.append("district", document.getElementById("district").value);
     formData.append("community", document.getElementById("community").value);
