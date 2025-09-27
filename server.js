@@ -80,68 +80,65 @@ const ImageSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// ✅ Campus Schema
 const campusSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  normalizedName: { type: String, required: true, lowercase: true },
+  normalizedName: { type: String, lowercase: true }, // auto-generated
   address: { type: String, required: true },
   logo: { type: String },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true }, // stored as plain text now
 }, { timestamps: true });
 
+// Auto-generate normalizedName
+campusSchema.pre("save", function (next) {
+  if (this.name) {
+    this.normalizedName = this.name.toLowerCase().trim();
+  }
+  next();
+});
 
+
+// ✅ District Schema
 const districtSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  normalizedName: { type: String, required: true, lowercase: true },
-  campus: { type: mongoose.Schema.Types.ObjectId, ref: "Campus", required: true }, // linked campus
+  normalizedName: { type: String, lowercase: true }, // auto-generated
+  campus: { type: mongoose.Schema.Types.ObjectId, ref: "Campus", required: true }, 
   email: { type: String, required: true, unique: true },
-  password: { type: String, required: true }, // stored plain for now
+  password: { type: String, required: true }, 
   logo: { type: String }
 }, { timestamps: true });
 
+districtSchema.pre("save", function (next) {
+  if (this.name) {
+    this.normalizedName = this.name.toLowerCase().trim();
+  }
+  next();
+});
+
+
+// ✅ Community Schema
 const communitySchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-    unique: true,
-  },
-  normalizedName: { type: String, required: true, lowercase: true },
-  district: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "District",
-    required: true,
-  },
-  leader: {
-    type: String,
-    required: true,
-  },
-  leaderPhone: {
-    type: String,
-    required: true,
-  },
-  password: {
-    type: String,
-    required: true,
-  },
+  name: { type: String, required: true, unique: true },
+  normalizedName: { type: String, lowercase: true }, // auto-generated
+  district: { type: mongoose.Schema.Types.ObjectId, ref: "District", required: true },
+  leader: { type: String, required: true },
+  leaderPhone: { type: String, required: true },
+  password: { type: String, required: true },
   logo: String, // Cloudinary URL
 }, { timestamps: true });
 
-//const cellSchema = new mongoose.Schema({
- // name: { type: String, required: true },
-//  campus: { type: mongoose.Schema.Types.ObjectId, ref: "Campus", required: true },
-//  district: { type: mongoose.Schema.Types.ObjectId, ref: "District", required: true },
-//  community: {type: mongoose.Schema.Types.ObjectId, ref: "Community", required: true},
-//  address: { type: String, required: true },
-//  leader: { type: String, required: true },
-//  phone: { type: String, required: true},
-//  email: { type: String, required: true, unique: true },
-//  password: { type: String, required: true }, // plain since no bcrypt
-//  logo: { type: String },
-//  dateRegistered: { type: Date, default: Date.now },
-// });
+communitySchema.pre("save", function (next) {
+  if (this.name) {
+    this.normalizedName = this.name.toLowerCase().trim();
+  }
+  next();
+});
+
+// ✅ Cell Schema
 const cellSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  normalizedName: { type: String, required: true, lowercase: true },
+  normalizedName: { type: String, lowercase: true }, // auto-generated
   campus: { type: mongoose.Schema.Types.ObjectId, ref: "Campus", required: true },
   district: { type: mongoose.Schema.Types.ObjectId, ref: "District", required: true },
   community: { type: mongoose.Schema.Types.ObjectId, ref: "Community", required: true },
@@ -151,8 +148,17 @@ const cellSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true }, // plain since no bcrypt
   logo: { type: String },
-  dateRegistered: { type: Date, default: Date.now } // ✅ You forgot to finish this
+  dateRegistered: { type: Date, default: Date.now }
+}, { timestamps: true });
+
+// Auto-generate normalizedName
+cellSchema.pre("save", function (next) {
+  if (this.name) {
+    this.normalizedName = this.name.toLowerCase().trim();
+  }
+  next();
 });
+
 const memberSchema = new mongoose.Schema({
   fullName: { type: String, required: true },
   address: { type: String, required: true },
@@ -163,12 +169,20 @@ const memberSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 
-// ✅ SuperAdmin Schema
+// ✅ SuperAdmin Schema (auto-generate normalizedName)
 const superAdminSchema = new mongoose.Schema({
   name: { type: String, required: true, unique: true },
-  normalizedName: { type: String, required: true, lowercase: true },
+  normalizedName: { type: String, lowercase: true }, // not required anymore
   password: { type: String, required: true },
   createdAt: { type: Date, default: Date.now }
+});
+
+// 🔄 Auto-generate normalizedName from name
+superAdminSchema.pre("save", function (next) {
+  if (this.name) {
+    this.normalizedName = this.name.toLowerCase().trim();
+  }
+  next();
 });
 
 // ---------- Mongoose Models ---------
